@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public abstract class AsmFile
+    public abstract class AsmFile : IVerifiable
     {
         public string[] Input { get; }
 
@@ -11,19 +11,21 @@
 
         public string Extension { get; }
 
-        public string[] GetContent()
-        {
-            return this.Content.ToArray();
-        }
+        protected List<string> Content { get; }
 
-        protected readonly List<string> Content;
+        protected AsmCoordinator Coordinator { get; }
 
-        protected AsmFile(string name, string[] input)
+        public string[] GetContent() => this.Content.ToArray();
+
+        public abstract bool IsWellStructured();
+
+        protected AsmFile(AsmCoordinator coordinator, string[] input, string name)
         {
-            this.Name = name;
-            this.Extension = $".{name.ToLower()}";
+            this.Coordinator = coordinator;
             this.Input = input;
             this.Content = input.ToList();
+            this.Name = name;
+            this.Extension = $".{name.ToLower()}";
         }
     }
 }

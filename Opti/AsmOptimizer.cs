@@ -1,11 +1,16 @@
 ﻿namespace Opti
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
 
-    public class Optimizer
+    public class AsmOptimizer : IVerifiable
     {
+        public string ResultName { get; set; } = "Result";
+
+        private readonly AsmCoordinator coordinator;
+
         private readonly GsaFile gsa;
 
         private readonly TxtFile txt;
@@ -17,24 +22,20 @@
             return File.ReadAllLines(path);
         }
 
-        public Optimizer(string gsaPath, string txtPath, string micPath) : this(FromPath(gsaPath), FromPath(txtPath), FromPath(micPath))
+        public AsmOptimizer(string gsaPath, string txtPath, string micPath) : this(FromPath(gsaPath), FromPath(txtPath), FromPath(micPath))
         {
 
         }
 
-        public Optimizer(string[] gsa, string[] txt, string[] mic)
+        public AsmOptimizer(string[] gsa, string[] txt, string[] mic)
         {
-            this.gsa = new GsaFile(gsa);
-            this.txt = new TxtFile(txt);
-            this.mic = new MicFile(mic);
-        }
+            var coordinator = new AsmCoordinator(/**/);
 
-        private string resultName;
+            this.gsa = new GsaFile(coordinator, gsa);
+            this.txt = new TxtFile(coordinator, txt);
+            this.mic = new MicFile(coordinator, mic);
 
-        public string ResultName
-        {
-            get => this.resultName ?? "Result";
-            set => this.resultName = value;
+            this.coordinator = coordinator;
         }
 
         public IEnumerable<AsmFile> Files()
@@ -51,11 +52,9 @@
                 var name = this.ResultName;
                 yield return name;
 
-                var i = 2;
-
-                while (true)
+                for (var i = 2; i < int.MaxValue; i++)
                 {
-                    yield return $"{name}_{i++}";
+                    yield return $"{name}_{i}";
                 }
             }
 
@@ -74,9 +73,9 @@
             }
         }
 
-        public bool IsInputValid()
+        public bool IsWellStructured()
         {
-            return true;
+            return this.Files().Cast<IVerifiable>().Prepend(coordinator).All(file => file.IsWellStructured());
         }
 
         public int Optimize()

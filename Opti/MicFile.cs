@@ -2,9 +2,14 @@
 {
     public class MicFile : AsmFile
     {
-        public MicFile(string[] input) : base("Mic", input)
+        public MicFile(AsmCoordinator coordinator, string[] input) : base(coordinator, input, "Mic")
         {
 
+        }
+
+        public override bool IsWellStructured()
+        {
+            return true;
         }
     }
 }

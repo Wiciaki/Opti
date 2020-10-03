@@ -115,15 +115,6 @@ namespace Opti.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Optimized {0} elements.
-        /// </summary>
-        internal static string elements_optimized {
-            get {
-                return ResourceManager.GetString("elements_optimized", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No valid {0} file provided!.
         /// </summary>
         internal static string err_input_invalid {
@@ -135,9 +126,9 @@ namespace Opti.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Multiple {0} files found!.
         /// </summary>
-        internal static string err_input_mulltiple {
+        internal static string err_input_multiple {
             get {
-                return ResourceManager.GetString("err_input_mulltiple", resourceCulture);
+                return ResourceManager.GetString("err_input_multiple", resourceCulture);
             }
         }
         
@@ -147,6 +138,33 @@ namespace Opti.Properties {
         internal static string err_outdir_invalid {
             get {
                 return ResourceManager.GetString("err_outdir_invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0} file:.
+        /// </summary>
+        internal static string info_file {
+            get {
+                return ResourceManager.GetString("info_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optimized {0} elements.
+        /// </summary>
+        internal static string info_optimized {
+            get {
+                return ResourceManager.GetString("info_optimized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optimization results saved to {0}.
+        /// </summary>
+        internal static string info_saved {
+            get {
+                return ResourceManager.GetString("info_saved", resourceCulture);
             }
         }
         

@@ -135,17 +135,23 @@
   <data name="description_verifyonly" xml:space="preserve">
     <value>If this flag is specified, the program will only report whether the input files are in the correct format; no optimization is done nor any output is produced. If this option is specified, all the other are ignored</value>
   </data>
-  <data name="elements_optimized" xml:space="preserve">
-    <value>Optimized {0} elements</value>
-  </data>
   <data name="err_input_invalid" xml:space="preserve">
     <value>No valid {0} file provided!</value>
   </data>
-  <data name="err_input_mulltiple" xml:space="preserve">
+  <data name="err_input_multiple" xml:space="preserve">
     <value>Multiple {0} files found!</value>
   </data>
   <data name="err_outdir_invalid" xml:space="preserve">
     <value>Outdir parameter not valid!</value>
+  </data>
+  <data name="info_file" xml:space="preserve">
+    <value>The {0} file:</value>
+  </data>
+  <data name="info_optimized" xml:space="preserve">
+    <value>Optimized {0} elements</value>
+  </data>
+  <data name="info_saved" xml:space="preserve">
+    <value>Optimization results saved to {0}</value>
   </data>
   <data name="input_err" xml:space="preserve">
     <value>Found incompatibilities during input analysis!</value>

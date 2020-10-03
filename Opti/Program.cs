@@ -6,7 +6,6 @@
     using System.CommandLine.Invocation;
     using System.Diagnostics;
     using System.IO;
-    using System.Text;
 
     using Opti.Properties;
 
@@ -17,12 +16,10 @@
     /// </summary>
     internal static class Program
     {
-        private static readonly string Desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        private static readonly Lazy<string> Desktop = new Lazy<string>(() => Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
         private static int Main(string[] args)
         {
-            Console.OutputEncoding = Encoding.UTF8;
-
             var command = new RootCommand(Resources.description_root)
                               {
                                   new Argument<string[]>("paths", Resources.description_paths),
@@ -32,11 +29,11 @@
                                   new Option<bool>("--open", Resources.description_open)
                               };
 
-            command.Handler = CommandHandler.Create<string[], bool, string, bool, bool>(Run);
+            command.Handler = CommandHandler.Create<string[], bool, string, bool, bool>(InvokeOptimizer);
 
             var result = command.Invoke(args);
 
-            if (result != 0)
+            if (result != 0 && IsDisappearing())
             {
                 Console.WriteLine(Resources.press_to_continue);
                 Console.ReadKey(true);
@@ -47,17 +44,17 @@
 
         private static string GetDefaultOutdir()
         {
-            return Path.Combine(Desktop, "ASM_Optimized");
+            return Path.Combine(Desktop.Value, "ASM_Optimized");
         }
 
-        private static int Run(string[] paths, bool verifyonly, string outdir, bool print, bool open)
+        private static int InvokeOptimizer(string[] paths, bool verifyonly, string outdir, bool print, bool open)
         {
             paths ??= new[]
                           {
 #if !DEBUG
                               Directory.GetCurrentDirectory()
 #else
-                              Path.Combine(Desktop, "Studio")
+                              Path.Combine(Desktop.Value, "Studio")
 #endif
                           };
 
@@ -75,35 +72,37 @@
                 }
             }
 
-            string GetPath(string ext)
+            string GetPath(string ex)
             {
-                var l = files.FindAll(f => Path.GetExtension(f) == ext);
+                ex = '.' + ex;
+
+                var l = files.FindAll(f => Path.GetExtension(f) == ex);
 
                 switch (l.Count)
                 {
                     case 1:
                         return l[0];
                     case 0:
-                        Error(string.Format(Resources.err_input_invalid, ext));
+                        Error(Resources.err_input_invalid, ex);
                         return null;
                     default:
-                        Error(string.Format(Resources.err_input_mulltiple, ext));
+                        Error(Resources.err_input_multiple, ex);
                         return null;
                 }
             }
 
-            Optimizer optimizer;
+            var gsa = GetPath("gsa");
+            var txt = GetPath("txt");
+            var mic = GetPath("mic");
 
-            try
-            {
-                optimizer = new Optimizer(GetPath(".gsa"), GetPath(".txt"), GetPath(".mic"));
-            }
-            catch
+            if (gsa == null || txt == null || mic == null)
             {
                 return -1;
             }
 
-            Console.WriteLine(optimizer.IsInputValid() ? Resources.input_ok : Resources.input_err);
+            var optimizer = new AsmOptimizer(gsa, mic, txt);
+
+            Console.WriteLine(optimizer.IsWellStructured() ? Resources.input_ok : Resources.input_err);
 
             if (verifyonly)
             {
@@ -120,24 +119,23 @@
                 return -1;
             }
 
-            var optimized = optimizer.Optimize();
-
-            Console.WriteLine(Resources.elements_optimized, optimized);
+            Console.WriteLine(Resources.info_optimized, optimizer.Optimize());
 
             if (print)
             {
-                Console.WriteLine();
                 var resultName = optimizer.GetResultNameForDirectory(outdir);
 
                 foreach (var file in optimizer.Files())
                 {
-                    Console.WriteLine(resultName + file.Extension);
+                    var fileName = resultName + file.Extension;
+                    Console.WriteLine(Resources.info_file, fileName);
                     Print(string.Join(Environment.NewLine, file.GetContent()), ConsoleColor.DarkYellow);
                     Console.WriteLine();
                 }
             }
 
             optimizer.SaveTo(outdir);
+            Console.WriteLine(Resources.info_saved, outdir);
 
             if (open)
             {
@@ -155,14 +153,29 @@
             Console.ForegroundColor = r;
         }
 
-        private static void Error(string message)
+        private static void Error(string message, params object[] arguments)
         {
-            Print("E: " + message, ConsoleColor.Red);
+            Print("E: " + string.Format(message, arguments), ConsoleColor.Red);
         }
 
         private static void OpenExplorer(string directory)
         {
             Process.Start(new ProcessStartInfo { FileName = directory, Verb = "open", UseShellExecute = true });
+        }
+
+        private static bool IsDisappearing()
+        {
+            //var myId = Process.GetCurrentProcess().Id;
+            //var query = string.Format("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId = {0}", myId);
+            //var search = new ManagementObjectSearcher("root\\CIMV2", query);
+            //var results = search.Get().GetEnumerator();
+            //results.MoveNext();
+            //var queryObj = results.Current;
+            //var parentId = (uint)queryObj["ParentProcessId"];
+            //var parent = Process.GetProcessById((int)parentId);
+            //return parent.ProcessName == "explorer";
+
+            return true;
         }
     }
 }

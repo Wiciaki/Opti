@@ -2,9 +2,15 @@
 {
     public class GsaFile : AsmFile
     {
-        public GsaFile(string[] input) : base("Gsa", input)
+        public GsaFile(AsmCoordinator coordinator, string[] input) : base(coordinator, input, "Gsa")
         {
 
+        }
+
+        public override bool IsWellStructured()
+        {
+
+            return true;
         }
     }
 }
