@@ -1,86 +1,74 @@
 ﻿namespace Opti
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
 
-    public class AsmOptimizer : IVerifiable
+    public class AsmOptimizer
     {
-        public string ResultName { get; set; } = "Result";
+        public AsmCoordinator Coordinator { get; }
 
-        private readonly AsmCoordinator coordinator;
+        public List<Optimization> Optimizations { get; }
 
-        private readonly GsaFile gsa;
+        private readonly string resultName;
 
-        private readonly TxtFile txt;
+        private bool? valid;
 
-        private readonly MicFile mic;
-
-        private static string[] FromPath(string path)
+        public AsmOptimizer(string gsaPath, string txtPath, string micPath, string resultName) : this(Read(gsaPath), Read(txtPath), Read(micPath), resultName)
         {
+
+        }
+
+        public AsmOptimizer(string[] gsa, string[] txt, string[] mic, string resultName)
+        {
+            this.resultName = resultName;
+
+            this.Coordinator = new AsmCoordinator(gsa, txt, mic);
+            this.Optimizations = new List<Optimization>();
+        }
+
+        private static string[] Read(string path)
+        {
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException();
+            }
+
             return File.ReadAllLines(path);
         }
 
-        public AsmOptimizer(string gsaPath, string txtPath, string micPath) : this(FromPath(gsaPath), FromPath(txtPath), FromPath(micPath))
-        {
+        public bool IsInputValid => valid ??= this.Coordinator.IsWellStructured();
 
+        public void SaveTo(string directory)
+        {
+            var name = this.GetResultName(directory);
+
+            foreach (var file in this.Coordinator.Files())
+            {
+                File.WriteAllLines(Path.Combine(directory, name + file.Extension), file.GetContent());
+            }
         }
 
-        public AsmOptimizer(string[] gsa, string[] txt, string[] mic)
+        public int Optimize()
         {
-            var coordinator = new AsmCoordinator(/**/);
-
-            this.gsa = new GsaFile(coordinator, gsa);
-            this.txt = new TxtFile(coordinator, txt);
-            this.mic = new MicFile(coordinator, mic);
-
-            this.coordinator = coordinator;
+            return 0;
         }
 
-        public IEnumerable<AsmFile> Files()
-        {
-            yield return this.gsa;
-            yield return this.txt;
-            yield return this.mic;
-        }
-
-        public string GetResultNameForDirectory(string directory)
+        public string GetResultName(string directory)
         {
             IEnumerable<string> Names()
             {
-                var name = this.ResultName;
-                yield return name;
+                yield return this.resultName;
 
                 for (var i = 2; i < int.MaxValue; i++)
                 {
-                    yield return $"{name}_{i}";
+                    yield return $"{this.resultName}_{i}";
                 }
             }
 
             var hashset = new HashSet<string>(Directory.EnumerateFiles(directory).Select(Path.GetFileNameWithoutExtension));
 
             return Names().First(hashset.Add);
-        }
-
-        public void SaveTo(string directory)
-        {
-            var name = this.GetResultNameForDirectory(directory);
-
-            foreach (var file in this.Files())
-            {
-                File.WriteAllLines(Path.Combine(directory, name + file.Extension), file.GetContent());
-            }
-        }
-
-        public bool IsWellStructured()
-        {
-            return this.Files().Cast<IVerifiable>().Prepend(coordinator).All(file => file.IsWellStructured());
-        }
-
-        public int Optimize()
-        {
-            return 0;
         }
     }
 }

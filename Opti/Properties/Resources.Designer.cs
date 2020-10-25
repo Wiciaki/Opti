@@ -61,7 +61,7 @@ namespace Opti.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If this flag is specified, the resulting directory will be open after the successful optimization.
+        ///   Looks up a localized string similar to If this flag is specified, the resulting directory will be opened after the successful optimization.
         /// </summary>
         internal static string description_open {
             get {
@@ -93,6 +93,15 @@ namespace Opti.Properties {
         internal static string description_print {
             get {
                 return ResourceManager.GetString("description_print", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name for the generated output files.
+        /// </summary>
+        internal static string description_resultname {
+            get {
+                return ResourceManager.GetString("description_resultname", resourceCulture);
             }
         }
         

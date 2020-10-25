@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="description_open" xml:space="preserve">
-    <value>If this flag is specified, the resulting directory will be open after the successful optimization</value>
+    <value>If this flag is specified, the resulting directory will be opened after the successful optimization</value>
   </data>
   <data name="description_outdir" xml:space="preserve">
     <value>The path of the desired directory to contain the results. Doesn't have to exist beforehand</value>
@@ -128,6 +128,9 @@
   </data>
   <data name="description_print" xml:space="preserve">
     <value>If this flag is specified, the full result will be printed to the console</value>
+  </data>
+  <data name="description_resultname" xml:space="preserve">
+    <value>The name for the generated output files</value>
   </data>
   <data name="description_root" xml:space="preserve">
     <value>A tool that optimizes the ASM-formatted files; the amount of both operational and conditional vertices</value>
