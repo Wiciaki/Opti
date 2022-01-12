@@ -1,17 +1,14 @@
-﻿namespace Opti
+﻿namespace Opti.Parser
 {
     using System;
     using System.Linq;
 
-    public class OperationLine
+    public class OperationLine : AsmLine
     {
-        public string Instruction { get; }
-
         public string Operation { get; }
 
-        public OperationLine(string instruction, string operation)
+        public OperationLine(string instruction, string operation) : base(instruction)
         {
-            this.Instruction = instruction;
             this.Operation = operation;
         }
 
@@ -20,6 +17,11 @@
             var split = new string(Array.FindAll(line.ToCharArray(), c => !char.IsWhiteSpace(c))).Split(':');
 
             return new OperationLine(split[0], string.Join(':', split.Skip(1)));
+        }
+
+        public override string ToString()
+        {
+            return $"OperationLine: [{this.Instruction}\t: {this.Operation}]";
         }
     }
 }

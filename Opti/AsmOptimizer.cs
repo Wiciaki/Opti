@@ -4,27 +4,26 @@
     using System.IO;
     using System.Linq;
 
+    using Opti.Optimizations;
+    using Opti.Parser;
+
     public class AsmOptimizer
     {
-        public AsmCoordinator Coordinator { get; }
+        public AsmFileCollection FileCollection { get; }
 
         public List<Optimization> Optimizations { get; }
 
         private readonly string resultName;
 
-        private bool? valid;
-
         public AsmOptimizer(string gsaPath, string txtPath, string micPath, string resultName) : this(Read(gsaPath), Read(txtPath), Read(micPath), resultName)
-        {
-
-        }
+        { }
 
         public AsmOptimizer(string[] gsa, string[] txt, string[] mic, string resultName)
         {
             this.resultName = resultName;
 
-            this.Coordinator = new AsmCoordinator(gsa, txt, mic);
-            this.Optimizations = new List<Optimization>();
+            this.FileCollection = new(gsa, txt, mic);
+            this.Optimizations = Optimization.LoadOptimizations(this.FileCollection).ToList();
         }
 
         private static string[] Read(string path)
@@ -37,21 +36,14 @@
             return File.ReadAllLines(path);
         }
 
-        public bool IsInputValid => valid ??= this.Coordinator.IsWellStructured();
-
         public void SaveTo(string directory)
         {
             var name = this.GetResultName(directory);
 
-            foreach (var file in this.Coordinator.Files())
+            foreach (var file in this.FileCollection.Files())
             {
                 File.WriteAllLines(Path.Combine(directory, name + file.Extension), file.GetContent());
             }
-        }
-
-        public int Optimize()
-        {
-            return 0;
         }
 
         public string GetResultName(string directory)
@@ -69,6 +61,27 @@
             var hashset = new HashSet<string>(Directory.EnumerateFiles(directory).Select(Path.GetFileNameWithoutExtension));
 
             return Names().First(hashset.Add);
+        }
+
+        public int Optimize(int maxPassCount = int.MaxValue)
+        {
+            var count = 0;
+
+            for (var i = 1; i <= maxPassCount; ++i)
+            {
+                var sum = this.Optimizations.Sum(optimization => optimization.Perform());
+
+                Program.Info($"Pass no. {i} - optimized {sum} elements");
+
+                if (sum == 0)
+                {
+                    break;
+                }
+
+                count += sum;
+            }
+
+            return count;
         }
     }
 }

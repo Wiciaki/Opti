@@ -1,4 +1,4 @@
-﻿namespace Opti
+﻿namespace Opti.Parser
 {
     using System.Collections;
     using System.Collections.Generic;
@@ -14,19 +14,16 @@
 
         public string[] GetContent() => this.Content.ToArray();
 
-        public abstract bool IsWellStructured();
+        public abstract bool VerifyStructure();
 
         protected List<string> Content { get; }
-
-        protected AsmCoordinator Coordinator { get; }
 
         public abstract IEnumerator<TLine> GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-        protected AsmFile(AsmCoordinator coordinator, string[] input, string name)
+        protected AsmFile(string[] input, string name)
         {
-            this.Coordinator = coordinator;
             this.Input = input;
             this.Content = input.ToList();
             this.Name = name;

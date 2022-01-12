@@ -1,4 +1,4 @@
-﻿namespace Opti
+﻿namespace Opti.Parser
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@
 
     public class TxtFile : AsmFile<InstructionLine>
     {
-        public TxtFile(AsmCoordinator coordinator, string[] input) : base(coordinator, input, "Txt")
+        public TxtFile(string[] input) : base(input, "Txt")
         { }
 
         public override IEnumerator<InstructionLine> GetEnumerator()
@@ -51,7 +51,7 @@
             }
         }
 
-        public override bool IsWellStructured()
+        public override bool VerifyStructure()
         {
             try
             {
@@ -97,6 +97,73 @@
             {
                 return false;
             }
+        }
+
+        public TxtType GetType(string instruction)
+        {
+            if (this.GetInstructions().Any(line => line.Instruction == instruction))
+            {
+                return TxtType.Instruction;
+            }
+
+            if (this.GetOperations().Any(line => line.Instruction == instruction))
+            {
+                return TxtType.Operation;
+            }
+
+            if (this.GetConditions().Any(line => line.Instruction == instruction))
+            {
+                return TxtType.Condition;
+            }
+
+            throw new Exception();
+        }
+
+        public void InsertInstruction(string instruction, string[] operations)
+        {
+            var i = this.Content.FindIndex(line => line.StartsWith(this.Last().Instruction)) + 1;
+            this.Content.Insert(i, $"{instruction} = {string.Join(' ', operations)}");
+        }
+
+        public void UpdateInstruction(string instruction, IEnumerable<string> operations)
+        {
+            this.UpdateInstruction(instruction, string.Join(' ', operations));
+        }
+
+        public void UpdateInstruction(string instruction, string operations)
+        {
+            var index = this.Content.FindIndex(line => line.StartsWith(instruction));
+            var text = this.Content[index];
+            var line = InstructionLine.ParseTxt(text);
+
+            if (line.Operations.Any())
+            {
+                text = text[..text.IndexOf(line.Operations[0])];
+            }
+
+            this.Content[index] = text + operations;
+        }
+
+        public int RemoveInstruction(string instruction)
+        {
+            return this.Content.RemoveAll(line => line.StartsWith(instruction));
+        }
+
+        public string[] GetOperationsForInstruction(string instruction)
+        {
+            return this.First(line => line.Instruction == instruction).Operations;
+        }
+
+        public int RemoveOperations(Func<OperationLine, bool> predicate)
+        {
+            var list = this.GetOperations().Reverse().Where(predicate).ToList();
+
+            foreach (var i in list.Select(line => this.Content.FindIndex(l => l.StartsWith(line.Instruction))))
+            {
+                this.Content.RemoveAt(i);
+            }
+
+            return list.Count;
         }
     }
 }

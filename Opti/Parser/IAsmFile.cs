@@ -1,4 +1,4 @@
-﻿namespace Opti
+﻿namespace Opti.Parser
 {
     using System.Collections;
 

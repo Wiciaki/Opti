@@ -151,10 +151,10 @@
     <value>The {0} file:</value>
   </data>
   <data name="info_optimized" xml:space="preserve">
-    <value>Optimized {0} elements</value>
+    <value>Optimized {0} elements total</value>
   </data>
   <data name="info_saved" xml:space="preserve">
-    <value>Optimization results saved to {0}</value>
+    <value>Optimization results saved to {0} as {1}.*</value>
   </data>
   <data name="input_err" xml:space="preserve">
     <value>Found incompatibilities during input analysis!</value>
