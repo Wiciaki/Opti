@@ -45,7 +45,14 @@
 
         public int RemoveInstruction(string instruction, int index)
         {
-            return this.Gsa.RemoveInstruction(index) + this.Txt.RemoveInstruction(instruction) + this.Mic.RemoveInstruction(instruction);
+            var ct = this.Gsa.RemoveInstruction(index);
+
+            if (!this.Gsa.Any(line => line.Instruction == instruction))
+            {
+                ct += this.Txt.RemoveInstruction(instruction) + this.Mic.RemoveInstruction(instruction);
+            }
+
+            return ct;
         }
 
         private readonly Regex InstructionRegex = new("^\\D+", RegexOptions.Singleline | RegexOptions.Compiled);
@@ -88,12 +95,14 @@
 
                 this.Gsa.UpdateDestinations(element.Line.Index, destination);
                 this.RemoveInstruction(element.Line.Instruction, element.Line.Index);
+
+                return 1 + this.RemoveEmptyEntries();
             }
 
             var instructions = this.Txt.SelectMany(line => line.Operations).Distinct().ToList();
             var removedOperations = this.Txt.RemoveOperations(line => !instructions.Contains(line.Instruction));
 
-            return elements.Count + removedOperations;
+            return removedOperations;
         }
     }
 }
