@@ -28,6 +28,11 @@
             return this.Where(line => !this.IsStartInstruction(line) && !this.IsEndInstruction(line));
         }
 
+        private int GetIndex(int other)
+        {
+            return this.Content.Skip(1).ToList().FindIndex(line => GsaLine.Parse(line).Index == other) + 1;
+        }
+
         public override bool VerifyStructure()
         {
             try
@@ -88,16 +93,15 @@
 
         public void InsertInstruction(string instruction, int index, int first, int second)
         {
-            var lastInstruction = this.Last().Instruction;
+            var lastIndex = this.Last().Index;
 
-            var i = this.Content.FindIndex(line => line.Contains(lastInstruction));
-            this.Content.Insert(i + 1, $"  {index} {instruction}    {first}    {second}");
+            this.Content.Insert(GetIndex(lastIndex) + 1, $"  {index} {instruction}    {first}    {second}");
             this.SetNumber(this.GetNumber() + 1);
         }
 
-        public int RemoveInstruction(string instruction)
+        public int RemoveInstruction(int index)
         {
-            var count = this.Content.RemoveAll(line => line.Contains(instruction));
+            var count = this.Content.RemoveAll(line => line != this.Content[0] && GsaLine.Parse(line).Index == index);
             this.SetNumber(this.GetNumber() - count);
             return count;
         }
@@ -114,7 +118,7 @@
         {
             string T(int index) => (index == oldIndex ? newIndex : index).ToString();
 
-            var i = this.Content.FindIndex(l => l.Contains(line.Instruction));
+            var i = GetIndex(line.Index);
             var str = this.Content[i];
 
             this.Content[i] = str[..(str.IndexOf(line.Instruction.ToString()) + line.Instruction.Length)] + $"\t\t{T(line.First)}\t\t{T(line.Second)}\t\t";
@@ -151,7 +155,7 @@
                         return;
                     }
 
-                    foreach (var destination in destinations)
+                    foreach (var destination in destinations.DistinctBy(l => l.Index))
                     {
                         current = new GsaPath(line.Index);
                         EnterPath(destination);
@@ -168,10 +172,26 @@
 
             var paths = this.GetPaths();
 
-            return from element in paths.Select(path => new { path.Source, DestinationIndex = GetI(path) }).Distinct()
+            var lists = from element in paths.Select(path => new { path.Source, DestinationIndex = GetI(path) }).Distinct()
                    let list = paths.FindAll(path => path.Source == element.Source && GetI(path) == element.DestinationIndex)
-                   where list.Count > 1
+                   where list.Count == 2
                    select list;
+
+            foreach (var list in lists)
+            {
+                for (var i = 1; i < list[1].Path.Count; i++)
+                {
+                    if (list[0].Path.Exists(l => l.Index == list[1].Path[i].Index))
+                    {
+                        var copy = new GsaPath(list[1].Source);
+                        copy.Path.AddRange(list[1].Path.Take(i));
+
+                        list[1] = copy;
+                    }
+                }
+
+                yield return list;
+            }
         }
     }
 }

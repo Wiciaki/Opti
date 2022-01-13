@@ -99,26 +99,6 @@
             }
         }
 
-        public TxtType GetType(string instruction)
-        {
-            if (this.GetInstructions().Any(line => line.Instruction == instruction))
-            {
-                return TxtType.Instruction;
-            }
-
-            if (this.GetOperations().Any(line => line.Instruction == instruction))
-            {
-                return TxtType.Operation;
-            }
-
-            if (this.GetConditions().Any(line => line.Instruction == instruction))
-            {
-                return TxtType.Condition;
-            }
-
-            throw new Exception();
-        }
-
         public void InsertInstruction(string instruction, string[] operations)
         {
             var i = this.Content.FindIndex(line => line.StartsWith(this.Last().Instruction)) + 1;
@@ -151,7 +131,7 @@
 
         public string[] GetOperationsForInstruction(string instruction)
         {
-            return this.First(line => line.Instruction == instruction).Operations;
+            return this.Single(line => line.Instruction == instruction).Operations;
         }
 
         public int RemoveOperations(Func<OperationLine, bool> predicate)

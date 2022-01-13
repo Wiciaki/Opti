@@ -41,25 +41,5 @@
         {
             return $"InstructionLine: [{this.Instruction} = {string.Join(' ', this.Operations)}]";
         }
-
-        //public static string MakeTxt(string instruction, string[] operations)
-        //{
-        //    return MakeTxt(instruction, string.Join(' ', operations));
-        //}
-
-        //public static string MakeTxt(string instruction, string operations)
-        //{
-        //    return $"{instruction} = {operations}";
-        //}
-
-        //public static string MakeMic(string instruction, string[] operations)
-        //{
-        //    return MakeMic(instruction, string.Join(' ', operations));
-        //}
-
-        //public static string MakeMic(string instruction, string operations)
-        //{
-        //    return $"{instruction}  {operations}";
-        //}
     }
 }

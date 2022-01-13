@@ -43,9 +43,9 @@
             this.UpdateInstruction(instruction, string.Join(' ', operations));
         }
 
-        public int RemoveInstruction(string instruction)
+        public int RemoveInstruction(string instruction, int index)
         {
-            return this.Gsa.RemoveInstruction(instruction) + this.Txt.RemoveInstruction(instruction) + this.Mic.RemoveInstruction(instruction);
+            return this.Gsa.RemoveInstruction(index) + this.Txt.RemoveInstruction(instruction) + this.Mic.RemoveInstruction(instruction);
         }
 
         private readonly Regex InstructionRegex = new("^\\D+", RegexOptions.Singleline | RegexOptions.Compiled);
@@ -78,16 +78,8 @@
 
             foreach (var element in elements)
             {
-                var destination = element.Destination.Index;
-                GsaLine line = null;
-
-                while ((line = elements.SingleOrDefault(l => l.Line.Index == destination)?.Line) != null)
-                {
-                    destination = this.Gsa.GetDestinations(line).Single().Index;
-                }
-
-                this.Gsa.UpdateDestinations(element.Line.Index, destination);
-                this.RemoveInstruction(element.Line.Instruction);
+                this.Gsa.UpdateDestinations(element.Line.Index, element.Destination.Index);
+                this.RemoveInstruction(element.Line.Instruction, element.Line.Index);
             }
 
             var instructions = this.Txt.SelectMany(line => line.Operations).Distinct().ToList();

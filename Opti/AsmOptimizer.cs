@@ -75,6 +75,9 @@
 
                 if (sum == 0)
                 {
+                    sum = this.FileCollection.RemoveEmptyEntries();
+                    count += sum;
+                    Program.Info($"Final pass - removed a total of {sum} empty entries in different elements.");
                     break;
                 }
 

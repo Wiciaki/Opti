@@ -28,10 +28,5 @@
 
             return new GsaLine(split[1], int.Parse(split[0]), int.Parse(split[2]), int.Parse(split[3]));
         }
-
-        //public static string Make(string instruction, int index, int first, int second)
-        //{
-        //    return $"{$"   {index} {instruction}",-12}{first,-7}{second}";
-        //}
     }
 }

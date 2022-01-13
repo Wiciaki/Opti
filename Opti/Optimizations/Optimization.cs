@@ -14,7 +14,7 @@
 
         public int Perform()
         {
-            return this.RunOptimization() + Files.RemoveEmptyEntries();
+            return this.RunOptimization();
         }
 
         public static IEnumerable<Optimization> LoadOptimizations(AsmFileCollection files)
