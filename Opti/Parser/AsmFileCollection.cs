@@ -78,7 +78,15 @@
 
             foreach (var element in elements)
             {
-                this.Gsa.UpdateDestinations(element.Line.Index, element.Destination.Index);
+                var destination = element.Destination.Index;
+
+                GsaLine line;
+                while ((line = elements.Find(e => e.Line.Index == destination)?.Line) != null)
+                {
+                    destination = this.Gsa.GetDestinations(line).Single().Index;
+                }
+
+                this.Gsa.UpdateDestinations(element.Line.Index, destination);
                 this.RemoveInstruction(element.Line.Instruction, element.Line.Index);
             }
 
