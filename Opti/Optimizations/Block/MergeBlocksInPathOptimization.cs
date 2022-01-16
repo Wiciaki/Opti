@@ -25,7 +25,14 @@
                     // przeniesienie operacji z bloczka do usunięcia do bloczka wyższego
                     Files.Txt.UpdateInstruction(path[i].Instruction, string.Empty);
                     Files.Txt.UpdateInstruction(path[i - 1].Instruction, oldOperations.Concat(newOperations));
+
+                    count++;
                 }
+            }
+
+            if (count > 0)
+            {
+                count += Files.RemoveEmptyEntries();
             }
 
             return count;

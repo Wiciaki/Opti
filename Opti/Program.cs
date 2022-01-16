@@ -40,7 +40,7 @@
             return result;
         }
 
-        private static readonly Lazy<string> Desktop = new(() => Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+        private static readonly Lazy<string> Desktop = new Lazy<string>(() => Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
         private static string GetDefaultOutdir() => Path.Combine(Desktop.Value, DEFAULT_OUTDIR);
 

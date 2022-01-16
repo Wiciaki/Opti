@@ -22,7 +22,7 @@
         {
             this.resultName = resultName;
 
-            this.FileCollection = new(gsa, txt, mic);
+            this.FileCollection = new AsmFileCollection(gsa, txt, mic);
             this.Optimizations = Optimization.LoadOptimizations(this.FileCollection).ToList();
         }
 

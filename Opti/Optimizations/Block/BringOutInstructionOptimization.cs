@@ -7,7 +7,7 @@
 
     public class BringOutInstructionOptimization : Optimization
     {
-        private readonly HashSet<string> hashset = new();
+        private readonly HashSet<string> hashset = new HashSet<string>();
 
         private static IEnumerable<string> GetAllOperations(GsaPath gsaPath)
         {
@@ -44,6 +44,7 @@
 
                 // przenoszenie części wspólnej do nowego bloczka
                 Files.AddInstruction(paths.ConvertAll(path => path.Path.Last()), intersection);
+                count++;
             }
 
             return count;

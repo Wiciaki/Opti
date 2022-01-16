@@ -61,7 +61,7 @@
             return true;
         }
 
-        private static readonly string[] StartSymbols = new[] { "begin", "start" };
+        private static readonly string[] StartSymbols = new[] { "begin" };
 
         public bool IsStartInstruction(GsaLine line)
         {
@@ -155,7 +155,7 @@
                         return;
                     }
 
-                    foreach (var destination in destinations.DistinctBy(l => l.Index))
+                    foreach (var destination in destinations.GroupBy(l => l.Index).Select(g => g.First()))
                     {
                         current = new GsaPath(line.Index);
                         EnterPath(destination);
@@ -166,27 +166,40 @@
             return paths;
         }
 
-        public IEnumerable<List<GsaPath>> GetParallelPaths()
+        public IEnumerable<List<GsaPath>> GetParallelPaths(bool cutOffMore = true)
         {
             int GetI(GsaPath gsa) => this.GetDestinations(gsa.Path.Last()).Single().Index;
 
             var paths = this.GetPaths();
 
-            var lists = from element in paths.Select(path => new { path.Source, DestinationIndex = GetI(path) }).Distinct()
-                   let list = paths.FindAll(path => path.Source == element.Source && GetI(path) == element.DestinationIndex)
-                   where list.Count == 2
-                   select list;
+            //var lists = from element in paths.Select(path => new { path.Source, DestinationIndex = GetI(path) }).GroupBy(p => p.Source).Select(g => g.First())
+            //       let list = paths.FindAll(path => path.Source == element.Source && GetI(path) == element.DestinationIndex)
+            //       where list.Count == 2
+            //       select list;
 
-            foreach (var list in lists)
+            var lists = from source in paths.Select(path => path.Source).Distinct()
+                        let list = paths.FindAll(path => path.Source == source)
+                        where list.Count == 2 && !list.Select(path => GetI(path)).Distinct().Skip(1).Any()
+                        select list;
+
+            foreach (var tList in lists)
             {
+                var list = tList.ToList();
+
                 for (var i = 1; i < list[1].Path.Count; i++)
                 {
-                    if (list[0].Path.Exists(l => l.Index == list[1].Path[i].Index))
-                    {
-                        var copy = new GsaPath(list[1].Source);
-                        copy.Path.AddRange(list[1].Path.Take(i));
+                    int index;
 
-                        list[1] = copy;
+                    if ((index = list[0].Path.FindIndex(l => l.Index == list[1].Path[i].Index)) >= 0)
+                    {
+                        void TruncAfter(GsaPath p, int i) => p.Path.RemoveRange(i, p.Path.Count - i);
+
+                        if (cutOffMore)
+                        {
+                            TruncAfter(list[0], index);
+                        }
+
+                        TruncAfter(list[1], i);
                     }
                 }
 

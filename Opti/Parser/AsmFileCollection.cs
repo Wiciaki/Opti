@@ -27,9 +27,9 @@
 
         public AsmFileCollection(string[] gsa, string[] txt, string[] mic)
         {
-            this.Gsa = new(gsa);
-            this.Txt = new(txt);
-            this.Mic = new(mic);
+            this.Gsa = new GsaFile(gsa);
+            this.Txt = new TxtFile(txt);
+            this.Mic = new MicFile(mic);
         }
 
         public void UpdateInstruction(string instruction, string operations)
@@ -55,7 +55,7 @@
             return ct;
         }
 
-        private readonly Regex InstructionRegex = new("^\\D+", RegexOptions.Singleline | RegexOptions.Compiled);
+        private readonly Regex InstructionRegex = new Regex("^\\D+", RegexOptions.Singleline | RegexOptions.Compiled);
 
         public void AddInstruction(List<GsaLine> sources, string[] operations)
         {
