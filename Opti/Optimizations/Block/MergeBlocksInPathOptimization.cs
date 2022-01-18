@@ -14,7 +14,7 @@
                 for (int i = 1; i < path.Count; i++)
                 {
                     // pomiń bloczki, do których wejście jest z więcej niż jednej strony
-                    if (Files.Gsa.Where(l => Files.Gsa.GetDestinations(l).Any(l => l.Index == path[i].Index)).Skip(1).Any())
+                    if (Files.Gsa.Where(l => Files.Gsa.GetDestinations(l).Any(line => line.Index == path[i].Index)).Skip(1).Any())
                     {
                         continue;
                     }
@@ -25,14 +25,8 @@
                     // przeniesienie operacji z bloczka do usunięcia do bloczka wyższego
                     Files.Txt.UpdateInstruction(path[i].Instruction, string.Empty);
                     Files.Txt.UpdateInstruction(path[i - 1].Instruction, oldOperations.Concat(newOperations));
-
                     count++;
                 }
-            }
-
-            if (count > 0)
-            {
-                count += Files.RemoveEmptyEntries();
             }
 
             return count;

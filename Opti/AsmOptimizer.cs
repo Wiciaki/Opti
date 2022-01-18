@@ -1,5 +1,6 @@
 ﻿namespace Opti
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -9,7 +10,7 @@
 
     public class AsmOptimizer
     {
-        public AsmFileCollection FileCollection { get; }
+        public AsmFiles Files { get; }
 
         public List<Optimization> Optimizations { get; }
 
@@ -22,8 +23,8 @@
         {
             this.resultName = resultName;
 
-            this.FileCollection = new AsmFileCollection(gsa, txt, mic);
-            this.Optimizations = Optimization.LoadOptimizations(this.FileCollection).ToList();
+            this.Files = new AsmFiles(gsa, txt, mic);
+            this.Optimizations = Optimization.LoadDefault(this.Files);
         }
 
         private static string[] Read(string path)
@@ -40,7 +41,7 @@
         {
             var name = this.GetResultName(directory);
 
-            foreach (var file in this.FileCollection.Files())
+            foreach (var file in this.Files)
             {
                 File.WriteAllLines(Path.Combine(directory, name + file.Extension), file.GetContent());
             }
@@ -63,25 +64,21 @@
             return Names().First(hashset.Add);
         }
 
-        public int Optimize(int maxPassCount = int.MaxValue)
+        public int Optimize(Action<int, int> onPassCallback = null, int maxPassCount = int.MaxValue)
         {
             var count = 0;
 
             for (var i = 1; i <= maxPassCount; ++i)
             {
-                var sum = this.Optimizations.Sum(optimization => optimization.Perform());
+                var optimized = this.Optimizations.Sum(optimization => optimization.Perform());
 
-                Program.Info($"Pass no. {i} - optimized {sum} elements");
-
-                if (sum == 0)
+                if (optimized == 0)
                 {
-                    sum = this.FileCollection.RemoveEmptyEntries();
-                    count += sum;
-                    Program.Info($"Final pass - removed a total of {sum} empty entries in different elements.");
                     break;
                 }
 
-                count += sum;
+                count += optimized;
+                onPassCallback?.Invoke(i, optimized);
             }
 
             return count;

@@ -1,11 +1,12 @@
 ﻿namespace Opti.Parser
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.RegularExpressions;
 
-    public class AsmFileCollection : IVerifiable
+    public class AsmFiles : IEnumerable<IAsmFile>, IVerifiable
     {
         public GsaFile Gsa { get; }
 
@@ -13,19 +14,26 @@
 
         public MicFile Mic { get; }
 
-        public IEnumerable<IAsmFile> Files()
+        public IEnumerator<IAsmFile> GetEnumerator()
         {
-            yield return this.Gsa;
-            yield return this.Txt;
-            yield return this.Mic;
+            IEnumerable<IAsmFile> GetFiles()
+            {
+                yield return this.Gsa;
+                yield return this.Txt;
+                yield return this.Mic;
+            }
+
+            return GetFiles().GetEnumerator();
         }
+
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
         public bool VerifyStructure()
         {
-            return this.Files().All(file => file.VerifyStructure());
+            return this.All(file => file.VerifyStructure());
         }
 
-        public AsmFileCollection(string[] gsa, string[] txt, string[] mic)
+        public AsmFiles(string[] gsa, string[] txt, string[] mic)
         {
             this.Gsa = new GsaFile(gsa);
             this.Txt = new TxtFile(txt);
@@ -43,16 +51,23 @@
             this.UpdateInstruction(instruction, string.Join(' ', operations));
         }
 
-        public int RemoveInstruction(string instruction, int index)
+        public void InsertLine(GsaLine line, string[] operations)
         {
-            var ct = this.Gsa.RemoveInstruction(index);
+            this.Gsa.InsertInstruction(line.Instruction, line.Index, line.First, line.Second);
+            this.Txt.InsertInstruction(line.Instruction, operations);
+            this.Mic.InsertInstruction(line.Instruction, operations);
+        }
 
-            if (!this.Gsa.Any(line => line.Instruction == instruction))
+        public int RemoveInstruction(GsaLine line)
+        {
+            var count = this.Gsa.RemoveInstruction(line.Index);
+
+            if (!this.Gsa.Any(l => l.Instruction == line.Instruction))
             {
-                ct += this.Txt.RemoveInstruction(instruction) + this.Mic.RemoveInstruction(instruction);
+                count += this.Txt.RemoveInstruction(line.Instruction) + this.Mic.RemoveInstruction(line.Instruction);
             }
 
-            return ct;
+            return count;
         }
 
         private readonly Regex InstructionRegex = new Regex("^\\D+", RegexOptions.Singleline | RegexOptions.Compiled);
@@ -69,9 +84,7 @@
                                orderby number descending
                                select prefix + number).First();
 
-            this.Gsa.InsertInstruction(instruction, newIndex, oldIndex, 0);
-            this.Txt.InsertInstruction(instruction, operations);
-            this.Mic.InsertInstruction(instruction, operations);
+            this.InsertLine(new GsaLine(instruction, newIndex, oldIndex, 0), operations);
 
             sources.ForEach(line => this.Gsa.UpdateDestinations(line, oldIndex, newIndex));
         }
@@ -79,22 +92,24 @@
         public int RemoveEmptyEntries()
         {
             var elements = (from line in this.Gsa.GetMiddleBlocks()
-                            let destinations = this.Gsa.GetDestinations(line).ToList()
-                            where destinations.Count == 1 && !this.Txt.GetOperationsForInstruction(line.Instruction).Any()
-                            select new { Line = line, Destination = destinations[0] }).ToList();
+                            let destinations = this.Gsa.GetDestinations(line).ToArray()
+                            where destinations.Length == 1 && !this.Txt.GetOperationsForInstruction(line.Instruction).Any()
+                            select new { Line = line, Destination = destinations[0] }).ToArray();
 
-            foreach (var element in elements)
+            if (elements.Length > 0)
             {
-                var destination = element.Destination.Index;
+                var element = elements[0];
+                var destinationIndex = element.Destination.Index;
 
                 GsaLine line;
-                while ((line = elements.Find(e => e.Line.Index == destination)?.Line) != null)
+
+                while ((line = Array.Find(elements, e => e.Line.Index == destinationIndex)?.Line) != null)
                 {
-                    destination = this.Gsa.GetDestinations(line).Single().Index;
+                    destinationIndex = this.Gsa.GetDestinations(line).Single().Index;
                 }
 
-                this.Gsa.UpdateDestinations(element.Line.Index, destination);
-                this.RemoveInstruction(element.Line.Instruction, element.Line.Index);
+                this.Gsa.SetDestinations(element.Line.Index, destinationIndex);
+                this.RemoveInstruction(element.Line);
 
                 return 1 + this.RemoveEmptyEntries();
             }

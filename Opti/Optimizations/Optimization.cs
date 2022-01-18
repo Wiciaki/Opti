@@ -1,6 +1,7 @@
 ﻿namespace Opti.Optimizations
 {
     using Opti.Optimizations.Block;
+    using Opti.Optimizations.Condition;
 
     using Opti.Parser;
 
@@ -8,25 +9,27 @@
 
     public abstract class Optimization
     {
-        protected static AsmFileCollection Files { get; private set; }
+        protected static AsmFiles Files { get; private set; }
 
         protected abstract int RunOptimization();
 
         public int Perform()
         {
-            return this.RunOptimization();
+            return this.RunOptimization() + Files.RemoveEmptyEntries();
         }
 
-        public static IEnumerable<Optimization> LoadOptimizations(AsmFileCollection files)
+        public static List<Optimization> LoadDefault(AsmFiles files)
         {
             Files = files;
 
             var list = new List<Optimization>();
             void Add<TOptimization>() where TOptimization : Optimization, new() => list.Add(new TOptimization());
 
-            Add<DuplicateOperationInPathOptimization>();
-            Add<MergeBlocksInPathOptimization>();
-            Add<BringOutInstructionOptimization>();
+            //Add<DuplicateOperationInPathOptimization>();
+            //Add<MergeBlocksInPathOptimization>();
+            //Add<BringOutInstructionOptimization>();
+
+            Add<RemoveRedundantConditionOptimization>();
 
             return list;
         }

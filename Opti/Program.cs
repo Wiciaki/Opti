@@ -29,15 +29,7 @@
             var command = new RootCommand(Resources.description_root) { paths, outdir, resultName, print };
             command.SetHandler((Action<string[], string, string, bool>)InvokeOptimizer, paths, outdir, resultName, print);
 
-            var result = await command.InvokeAsync(args);
-
-            if (result != 0)
-            {
-                Info(Resources.press_to_continue);
-                Console.ReadKey(true);
-            }
-
-            return result;
+            return await command.InvokeAsync(args);
         }
 
         private static readonly Lazy<string> Desktop = new Lazy<string>(() => Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
@@ -106,7 +98,7 @@
 
             var optimizer = new AsmOptimizer(gsa, txt, mic, resultName);
 
-            if (!optimizer.FileCollection.VerifyStructure())
+            if (!optimizer.Files.VerifyStructure())
             {
                 Info(Resources.input_err);
                 return;
@@ -124,13 +116,13 @@
                 return;
             }
 
-            Info(Resources.info_optimized, optimizer.Optimize());
+            Info(Resources.info_optimized, optimizer.Optimize(OnPassCallback));
 
             var name = optimizer.GetResultName(outdir);
 
             if (print)
             {
-                foreach (var file in optimizer.FileCollection.Files())
+                foreach (var file in optimizer.Files)
                 {
                     var fileName = name + file.Extension;
                     Info(Resources.info_file, fileName);
@@ -141,6 +133,11 @@
 
             optimizer.SaveTo(outdir);
             Info(Resources.info_saved, outdir, name);
+        }
+
+        private static void OnPassCallback(int optimizedInPass, int optimizedTotal)
+        {
+            Info(Resources.info_pass, optimizedInPass, optimizedTotal);
         }
 
         public static void Error(string message, params object[] arguments) => Print(ConsoleColor.Red, "E: " + message, arguments);

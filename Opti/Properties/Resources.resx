@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="description_open" xml:space="preserve">
-    <value>If this flag is specified, the resulting directory will be opened after the successful optimization</value>
-  </data>
   <data name="description_outdir" xml:space="preserve">
     <value>The path of the desired directory to contain the results. Doesn't have to exist beforehand</value>
   </data>
@@ -134,9 +131,6 @@
   </data>
   <data name="description_root" xml:space="preserve">
     <value>A tool that optimizes the ASM-formatted files; the amount of both operational and conditional vertices</value>
-  </data>
-  <data name="description_verifyonly" xml:space="preserve">
-    <value>If this flag is specified, the program will only report whether the input files are in the correct format; no optimization is done nor any output is produced. If this option is specified, all the other are ignored</value>
   </data>
   <data name="err_input_invalid" xml:space="preserve">
     <value>No valid {0} file provided!</value>
@@ -153,6 +147,9 @@
   <data name="info_optimized" xml:space="preserve">
     <value>Optimized {0} elements total</value>
   </data>
+  <data name="info_pass" xml:space="preserve">
+    <value>Pass no. {0} - optimized {1} elements</value>
+  </data>
   <data name="info_saved" xml:space="preserve">
     <value>Optimization results saved to {0} as {1}.*</value>
   </data>
@@ -161,8 +158,5 @@
   </data>
   <data name="input_ok" xml:space="preserve">
     <value>Input checked, appears to be fully valid!</value>
-  </data>
-  <data name="press_to_continue" xml:space="preserve">
-    <value>Press any button to continue...</value>
   </data>
 </root>

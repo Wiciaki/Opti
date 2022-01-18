@@ -131,7 +131,7 @@
 
         public string[] GetOperationsForInstruction(string instruction)
         {
-            return this.Single(line => line.Instruction == instruction).Operations;
+            return this.SingleOrDefault(line => line.Instruction == instruction)?.Operations ?? Array.Empty<string>();
         }
 
         public int RemoveOperations(Func<OperationLine, bool> predicate)

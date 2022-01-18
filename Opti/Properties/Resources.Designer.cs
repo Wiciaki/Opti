@@ -61,15 +61,6 @@ namespace Opti.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If this flag is specified, the resulting directory will be opened after the successful optimization.
-        /// </summary>
-        internal static string description_open {
-            get {
-                return ResourceManager.GetString("description_open", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The path of the desired directory to contain the results. Doesn&apos;t have to exist beforehand.
         /// </summary>
         internal static string description_outdir {
@@ -111,15 +102,6 @@ namespace Opti.Properties {
         internal static string description_root {
             get {
                 return ResourceManager.GetString("description_root", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to If this flag is specified, the program will only report whether the input files are in the correct format; no optimization is done nor any output is produced. If this option is specified, all the other are ignored.
-        /// </summary>
-        internal static string description_verifyonly {
-            get {
-                return ResourceManager.GetString("description_verifyonly", resourceCulture);
             }
         }
         
@@ -169,6 +151,15 @@ namespace Opti.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pass no. {0} - optimized {1} elements.
+        /// </summary>
+        internal static string info_pass {
+            get {
+                return ResourceManager.GetString("info_pass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Optimization results saved to {0} as {1}.*.
         /// </summary>
         internal static string info_saved {
@@ -192,15 +183,6 @@ namespace Opti.Properties {
         internal static string input_ok {
             get {
                 return ResourceManager.GetString("input_ok", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Press any button to continue....
-        /// </summary>
-        internal static string press_to_continue {
-            get {
-                return ResourceManager.GetString("press_to_continue", resourceCulture);
             }
         }
     }

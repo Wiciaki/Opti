@@ -95,7 +95,7 @@
         {
             var lastIndex = this.Last().Index;
 
-            this.Content.Insert(GetIndex(lastIndex) + 1, $"  {index} {instruction}    {first}    {second}");
+            this.Content.Insert(GetIndex(lastIndex) + 1, $"  {index} {instruction}".PadRight(12) + $"{first}    {second}");
             this.SetNumber(this.GetNumber() + 1);
         }
 
@@ -106,7 +106,7 @@
             return count;
         }
 
-        public void UpdateDestinations(int oldIndex, int newIndex)
+        public void SetDestinations(int oldIndex, int newIndex)
         {
             foreach (var line in this)
             {
@@ -121,9 +121,11 @@
             var i = GetIndex(line.Index);
             var str = this.Content[i];
 
-            this.Content[i] = str[..(str.IndexOf(line.Instruction.ToString()) + line.Instruction.Length)] + $"\t\t{T(line.First)}\t\t{T(line.Second)}\t\t";
+            this.Content[i] = str[..(str.IndexOf(line.Instruction.ToString()) + line.Instruction.Length)].PadRight(12) + $"{T(line.First)}    {T(line.Second)}    ";
         }
 
+        // algorytm rekurencyjny pozyskiwania ścieżek zawartych w diagramie
+        // ścieżka - kilka występujących po sobie bloczków operacyjnych rozgraniczonych przez wierzchołki operacyjne i/lub bloczki start/end
         public List<GsaPath> GetPaths()
         {
             var paths = new List<GsaPath>();
@@ -155,7 +157,7 @@
                         return;
                     }
 
-                    foreach (var destination in destinations.GroupBy(l => l.Index).Select(g => g.First()))
+                    foreach (var destination in destinations.GroupBy(line => line.Index).Select(group => group.First()))
                     {
                         current = new GsaPath(line.Index);
                         EnterPath(destination);
@@ -166,39 +168,30 @@
             return paths;
         }
 
-        public IEnumerable<List<GsaPath>> GetParallelPaths(bool cutOffMore = true)
+        // 'ParallelPaths' - para ścieżek pochodzących ze wspólnego wierzchołka warunkowego i kończących się we wspólnym wierzchołku/bloku End
+        // w przypadku, gdy ścieżki się łączą w pewnym momencie, funkcja zwraca części ścieżek tylko do momentu przecięcia
+        // funkcja zwraca zbiór par wszystkich równoległych ścieżek w diagramie
+        public IEnumerable<List<GsaPath>> GetParallelPaths()
         {
-            int GetI(GsaPath gsa) => this.GetDestinations(gsa.Path.Last()).Single().Index;
-
+            int GetDestinationIndex(GsaPath gsaPath) => this.GetDestinations(gsaPath.Path.Last()).Single().Index;
+            
             var paths = this.GetPaths();
-
-            //var lists = from element in paths.Select(path => new { path.Source, DestinationIndex = GetI(path) }).GroupBy(p => p.Source).Select(g => g.First())
-            //       let list = paths.FindAll(path => path.Source == element.Source && GetI(path) == element.DestinationIndex)
-            //       where list.Count == 2
-            //       select list;
-
             var lists = from source in paths.Select(path => path.Source).Distinct()
                         let list = paths.FindAll(path => path.Source == source)
-                        where list.Count == 2 && !list.Select(path => GetI(path)).Distinct().Skip(1).Any()
+                        where list.Count == 2 && !list.Select(GetDestinationIndex).Distinct().Skip(1).Any()
                         select list;
 
-            foreach (var tList in lists)
+            foreach (var list in lists)
             {
-                var list = tList.ToList();
-
                 for (var i = 1; i < list[1].Path.Count; i++)
                 {
-                    int index;
+                    var index = list[0].Path.FindIndex(l => l.Index == list[1].Path[i].Index);
 
-                    if ((index = list[0].Path.FindIndex(l => l.Index == list[1].Path[i].Index)) >= 0)
+                    if (index >= 0)
                     {
                         void TruncAfter(GsaPath p, int i) => p.Path.RemoveRange(i, p.Path.Count - i);
 
-                        if (cutOffMore)
-                        {
-                            TruncAfter(list[0], index);
-                        }
-
+                        TruncAfter(list[0], index);
                         TruncAfter(list[1], i);
                     }
                 }
