@@ -25,9 +25,9 @@
             var list = new List<Optimization>();
             void Add<TOptimization>() where TOptimization : Optimization, new() => list.Add(new TOptimization());
 
-            //Add<DuplicateOperationInPathOptimization>();
-            //Add<MergeBlocksInPathOptimization>();
-            //Add<BringOutInstructionOptimization>();
+            Add<DuplicateOperationInPathOptimization>();
+            Add<MergeBlocksInPathOptimization>();
+            Add<BringOutInstructionOptimization>();
 
             Add<RemoveRedundantConditionOptimization>();
 
