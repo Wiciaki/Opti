@@ -46,7 +46,7 @@
             this.Mic.UpdateInstruction(instruction, operations);
         }
 
-        public void UpdateInstruction(string instruction, string[] operations)
+        public void UpdateInstruction(string instruction, IEnumerable<string> operations)
         {
             this.UpdateInstruction(instruction, string.Join(' ', operations));
         }
@@ -54,8 +54,10 @@
         public void InsertLine(GsaLine line, string[] operations)
         {
             this.Gsa.InsertInstruction(line.Instruction, line.Index, line.First, line.Second);
-            this.Txt.InsertInstruction(line.Instruction, operations);
-            this.Mic.InsertInstruction(line.Instruction, operations);
+
+            var str = string.Join(' ', operations);
+            this.Txt.InsertInstruction(line.Instruction, str);
+            this.Mic.InsertInstruction(line.Instruction, str);
         }
 
         public int RemoveInstruction(GsaLine line)
@@ -72,43 +74,46 @@
 
         private readonly Regex InstructionRegex = new Regex("^\\D+", RegexOptions.Singleline | RegexOptions.Compiled);
 
-        public void AddInstruction(List<GsaLine> sources, string[] operations)
+        private string GetNewInstructionName()
         {
-            // tu pojawi się błąd jeśli podamy jako argument bloczki pod które nie da się postawić nowego
-            var oldIndex = sources.Select(line => this.Gsa.GetDestinations(line).Single().Index).Distinct().Single();
+            var generator = from line in this.Gsa.GetMiddleBlocks().Where(line => this.Txt.Any(l => l.Instruction == line.Instruction))
+                            let prefix = InstructionRegex.Match(line.Instruction).Value
+                            let number = int.Parse(InstructionRegex.Replace(line.Instruction, string.Empty)) + 1
+                            orderby number descending
+                            select prefix + number;
+
+            return generator.First();
+        }
+
+        public void AddInstruction(int source, string[] operations)
+        {
             var newIndex = this.Gsa.Max(line => line.Index) + 1;
+            var newInstruction = this.GetNewInstructionName();
 
-            var instruction = (from line in this.Gsa.GetMiddleBlocks().Where(line => this.Txt.Any(l => l.Instruction == line.Instruction))
-                               let prefix = InstructionRegex.Match(line.Instruction).Value
-                               let number = int.Parse(InstructionRegex.Replace(line.Instruction, string.Empty)) + 1
-                               orderby number descending
-                               select prefix + number).First();
-
-            this.InsertLine(new GsaLine(instruction, newIndex, oldIndex, 0), operations);
-
-            sources.ForEach(line => this.Gsa.UpdateDestinations(line, oldIndex, newIndex));
+            this.Gsa.SetChild(source, newIndex);
+            this.InsertLine(new GsaLine(newInstruction, newIndex, source, 0), operations);
         }
 
         public int RemoveEmptyEntries()
         {
             var elements = (from line in this.Gsa.GetMiddleBlocks()
-                            let destinations = this.Gsa.GetDestinations(line).ToArray()
+                            let destinations = this.Gsa.GetChildren(line).ToArray()
                             where destinations.Length == 1 && !this.Txt.GetOperationsForInstruction(line.Instruction).Any()
                             select new { Line = line, Destination = destinations[0] }).ToArray();
 
             if (elements.Length > 0)
             {
                 var element = elements[0];
-                var destinationIndex = element.Destination.Index;
+                var destination = element.Destination;
 
                 GsaLine line;
 
-                while ((line = Array.Find(elements, e => e.Line.Index == destinationIndex)?.Line) != null)
+                while ((line = Array.Find(elements, e => e.Line == destination)?.Line) != null)
                 {
-                    destinationIndex = this.Gsa.GetDestinations(line).Single().Index;
+                    destination = this.Gsa.GetChildren(line).Single();
                 }
 
-                this.Gsa.SetDestinations(element.Line.Index, destinationIndex);
+                this.Gsa.SetChild(element.Line.Index, destination.Index);
                 this.RemoveInstruction(element.Line);
 
                 return 1 + this.RemoveEmptyEntries();

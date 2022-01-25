@@ -37,9 +37,19 @@
             return new InstructionLine(instruction, operations);
         }
 
+        public static string MakeTxt(string instruction, string operations)
+        {
+            return $"{instruction} = {operations}";
+        }
+
+        public static string MakeMic(string instruction, string operations)
+        {
+            return $"{instruction}  {operations}";
+        }
+
         public override string ToString()
         {
-            return $"InstructionLine: [{this.Instruction} = {string.Join(' ', this.Operations)}]";
+            return $"InstructionLine: [{MakeTxt(this.Instruction, string.Join(' ', this.Operations))}]";
         }
     }
 }

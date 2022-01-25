@@ -5,6 +5,13 @@
 
     public class DuplicateOperationInPathOptimization : Optimization
     {
+        private static bool IsSafeToRemove(string instruction)
+        {
+            var line = Files.Txt.GetOperations().First(line => line.Instruction == instruction);
+            //System.Console.WriteLine(line.Operation);
+            return int.TryParse(line.Operation, out _);
+        }
+
         protected override int RunOptimization()
         {
             // licznik dokonanych zmian
@@ -23,12 +30,12 @@
                     // pobierz operacje z bieżącej linii
                     var instructions = Files.Txt.GetOperationsForInstruction(line.Instruction);
                     
-                    foreach (var instruction in instructions)
+                    foreach (var instruction in instructions.Where(IsSafeToRemove))
                     {
                         // już się pojawiła wcześniej, można usunąć
                         if (!hashset.Add(instruction))
                         {
-                            Files.Txt.UpdateInstruction(line.Instruction, instructions.Except(hashset));
+                            Files.UpdateInstruction(line.Instruction, instructions.Except(hashset));
                             count++;
                         }
                     }

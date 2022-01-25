@@ -99,10 +99,10 @@
             }
         }
 
-        public void InsertInstruction(string instruction, string[] operations)
+        public void InsertInstruction(string instruction, string operations)
         {
             var i = this.Content.FindIndex(line => line.StartsWith(this.Last().Instruction)) + 1;
-            this.Content.Insert(i, $"{instruction} = {string.Join(' ', operations)}");
+            this.Content.Insert(i, InstructionLine.MakeTxt(instruction, operations));
         }
 
         public void UpdateInstruction(string instruction, IEnumerable<string> operations)
@@ -113,15 +113,7 @@
         public void UpdateInstruction(string instruction, string operations)
         {
             var index = this.Content.FindIndex(line => line.StartsWith(instruction));
-            var text = this.Content[index];
-            var line = InstructionLine.ParseTxt(text);
-
-            if (line.Operations.Any())
-            {
-                text = text[..text.IndexOf(line.Operations[0])];
-            }
-
-            this.Content[index] = text + operations;
+            this.Content[index] = InstructionLine.MakeTxt(instruction, operations);
         }
 
         public int RemoveInstruction(string instruction)

@@ -28,9 +28,9 @@
             return this.Where(line => !this.IsStartInstruction(line) && !this.IsEndInstruction(line));
         }
 
-        private int GetIndex(int other)
+        private int GetIndex(GsaLine other)
         {
-            return this.Content.Skip(1).ToList().FindIndex(line => GsaLine.Parse(line).Index == other) + 1;
+            return this.Content.Skip(1).ToList().FindIndex(line => GsaLine.Parse(line) == other) + 1;
         }
 
         public override bool VerifyStructure()
@@ -70,7 +70,7 @@
 
         public bool IsEndInstruction(GsaLine line)
         {
-            return !this.GetDestinations(line).Any();
+            return !this.GetChildren(line).Any();
         }
 
         public GsaLine GetStartInstruction()
@@ -78,7 +78,7 @@
             return this.Single(this.IsStartInstruction);
         }
 
-        public IEnumerable<GsaLine> GetDestinations(GsaLine line)
+        public IEnumerable<GsaLine> GetChildren(GsaLine line)
         {
             if (line.First != 0)
             {
@@ -91,11 +91,14 @@
             }
         }
 
+        public GsaLine GetChild(GsaPath gsaPath)
+        {
+            return this.GetChildren(gsaPath.Path.Last()).Single();
+        }
+
         public void InsertInstruction(string instruction, int index, int first, int second)
         {
-            var lastIndex = this.Last().Index;
-
-            this.Content.Insert(GetIndex(lastIndex) + 1, $"  {index} {instruction}".PadRight(12) + $"{first}    {second}");
+            this.Content.Insert(GetIndex(this.Last()) + 1, GsaLine.Make(instruction, index, first, second));
             this.SetNumber(this.GetNumber() + 1);
         }
 
@@ -106,22 +109,19 @@
             return count;
         }
 
-        public void SetDestinations(int oldIndex, int newIndex)
+        public void SetChild(int oldIndex, int newIndex)
         {
             foreach (var line in this)
             {
-                this.UpdateDestinations(line, oldIndex, newIndex);
+                this.SetChild(line, oldIndex, newIndex);
             }
         }
 
-        public void UpdateDestinations(GsaLine line, int oldIndex, int newIndex)
+        public void SetChild(GsaLine line, int oldIndex, int newIndex)
         {
-            string T(int index) => (index == oldIndex ? newIndex : index).ToString();
+            int T(int index) => index == oldIndex ? newIndex : index;
 
-            var i = GetIndex(line.Index);
-            var str = this.Content[i];
-
-            this.Content[i] = str[..(str.IndexOf(line.Instruction.ToString()) + line.Instruction.Length)].PadRight(12) + $"{T(line.First)}    {T(line.Second)}    ";
+            this.Content[GetIndex(line)] = GsaLine.Make(line.Instruction, line.Index, T(line.First), T(line.Second));
         }
 
         // algorytm rekurencyjny pozyskiwania ścieżek zawartych w diagramie
@@ -129,16 +129,15 @@
         public List<GsaPath> GetPaths()
         {
             var paths = new List<GsaPath>();
-            var hashset = new HashSet<int>();
 
-            var element = this.GetDestinations(this.GetStartInstruction()).Single();
+            var element = this.GetChildren(this.GetStartInstruction()).Single();
             var current = new GsaPath(element.Index);
 
             EnterPath(element);
 
             void EnterPath(GsaLine line)
             {
-                var destinations = this.GetDestinations(line).ToList();
+                var destinations = this.GetChildren(line).ToList();
 
                 if (destinations.Count == 1)
                 {
@@ -152,12 +151,7 @@
                         paths.Add(current);
                     }
 
-                    if (!hashset.Add(line.Index))
-                    {
-                        return;
-                    }
-
-                    foreach (var destination in destinations.GroupBy(line => line.Index).Select(group => group.First()))
+                    foreach (var destination in destinations.Where(line => paths.TrueForAll(p => p.Path[0] != line)))
                     {
                         current = new GsaPath(line.Index);
                         EnterPath(destination);
@@ -168,35 +162,36 @@
             return paths;
         }
 
-        // 'ParallelPaths' - para ścieżek pochodzących ze wspólnego wierzchołka warunkowego i kończących się we wspólnym wierzchołku/bloku End
+        // 'ParallelPaths' - para ścieżek pochodzących ze wspólnego wierzchołka warunkowego
         // w przypadku, gdy ścieżki się łączą w pewnym momencie, funkcja zwraca części ścieżek tylko do momentu przecięcia
         // funkcja zwraca zbiór par wszystkich równoległych ścieżek w diagramie
         public IEnumerable<List<GsaPath>> GetParallelPaths()
         {
-            int GetDestinationIndex(GsaPath gsaPath) => this.GetDestinations(gsaPath.Path.Last()).Single().Index;
-            
-            var paths = this.GetPaths();
-            var lists = from source in paths.Select(path => path.Source).Distinct()
-                        let list = paths.FindAll(path => path.Source == source)
-                        where list.Count == 2 && !list.Select(GetDestinationIndex).Distinct().Skip(1).Any()
+            var lists = from path in this.GetPaths()
+                        group path by path.Source into gr
+                        let list = gr.ToList() 
+                        where list.Count > 1
                         select list;
 
             foreach (var list in lists)
             {
-                for (var i = 1; i < list[1].Path.Count; i++)
+                for (var i = 0; i < list[0].Path.Count; i++)
                 {
-                    var index = list[0].Path.FindIndex(l => l.Index == list[1].Path[i].Index);
+                    var index = list[1].Path.FindIndex(l => l == list[0].Path[i]);
 
                     if (index >= 0)
                     {
-                        void TruncAfter(GsaPath p, int i) => p.Path.RemoveRange(i, p.Path.Count - i);
+                        static void TruncAfter(GsaPath p, int i) => p.Path.RemoveRange(i, p.Path.Count - i);
 
-                        TruncAfter(list[0], index);
-                        TruncAfter(list[1], i);
+                        TruncAfter(list[0], i);
+                        TruncAfter(list[1], index);
                     }
                 }
 
-                yield return list;
+                if (list[0].Path.Any() && list[1].Path.Any())
+                {
+                    yield return list;
+                }
             }
         }
     }

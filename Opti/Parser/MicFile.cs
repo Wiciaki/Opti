@@ -48,10 +48,10 @@
             }
         }
 
-        public void InsertInstruction(string instruction, string[] operations)
+        public void InsertInstruction(string instruction, string operations)
         {
             var i = this.Content.FindIndex(line => line.Contains(this.Last().Instruction)) + 1;
-            this.Content.Insert(i, $"{instruction}   {string.Join(' ', operations)}");
+            this.Content.Insert(i, InstructionLine.MakeMic(instruction, operations));
         }
 
         public int RemoveInstruction(string instruction)
@@ -61,11 +61,8 @@
 
         public void UpdateInstruction(string instruction, string operations)
         {
-            var index = this.Content.FindIndex(line => line.Contains(instruction));
-            var line = this.Content[index];
-            var parsed = InstructionLine.ParseMic(line);
-
-            this.Content[index] = line[..line.IndexOf(parsed.Operations[0])] + operations;
+            var i = this.Content.FindIndex(line => line.Contains(instruction));
+            this.Content[i] = InstructionLine.MakeMic(instruction, operations);
         }
     }
 }

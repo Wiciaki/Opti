@@ -9,9 +9,9 @@
     {
         private readonly HashSet<string> hashset = new HashSet<string>();
 
-        private static IEnumerable<string> GetAllOperations(GsaPath gsaPath)
+        private static IEnumerable<string> GetAllOperations(GsaPath p)
         {
-            return gsaPath.Path.SelectMany(line => Files.Txt.GetOperationsForInstruction(line.Instruction));
+            return p.Path.Select(line => line.Instruction).SelectMany(Files.Txt.GetOperationsForInstruction);
         }
 
         protected override int RunOptimization()
@@ -39,11 +39,11 @@
                 foreach (var line in paths.SelectMany(gsaPath => gsaPath.Path))
                 {
                     var instructions = Files.Txt.GetOperationsForInstruction(line.Instruction);
-                    Files.Txt.UpdateInstruction(line.Instruction, instructions.Except(intersection));
+                    Files.UpdateInstruction(line.Instruction, instructions.Except(intersection));
                 }
 
-                // przenoszenie części wspólnej do nowego bloczka
-                Files.AddInstruction(paths.ConvertAll(path => path.Path.Last()), intersection);
+                // przenoszenie części wspólnej do nowego bloku
+                Files.AddInstruction(paths[0].Source, intersection);
                 count++;
             }
 
