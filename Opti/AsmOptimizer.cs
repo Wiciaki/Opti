@@ -74,6 +74,7 @@
 
                 if (optimized == 0)
                 {
+                    this.Files.Gsa.FixIndexing();
                     break;
                 }
 

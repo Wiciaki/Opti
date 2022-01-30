@@ -1,5 +1,6 @@
 ﻿namespace Opti.Parser
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -48,21 +49,34 @@
             }
         }
 
-        public void InsertInstruction(string instruction, string operations)
+        protected int GetIndex(string instruction)
         {
-            var i = this.Content.FindIndex(line => line.Contains(this.Last().Instruction)) + 1;
-            this.Content.Insert(i, InstructionLine.MakeMic(instruction, operations));
+            return this.GetIndex(this.Single(line => line.Instruction == instruction));
         }
 
-        public int RemoveInstruction(string instruction)
+        protected override int GetIndex(InstructionLine line)
         {
-            return this.Content.RemoveAll(line => line.StartsWith(instruction));
+            var index = this.Content.FindIndex(l => l.StartsWith(line.Instruction) && char.IsWhiteSpace(l.Skip(line.Instruction.Length).First()));
+
+            if (index == -1)
+                throw new Exception();
+
+            return index;
+        }
+
+        public void InsertInstruction(string instruction, string operations)
+        {
+            this.Content.Insert(this.GetIndex(this.Last()) + 1, InstructionLine.MakeMic(instruction, operations));
         }
 
         public void UpdateInstruction(string instruction, string operations)
         {
-            var i = this.Content.FindIndex(line => line.Contains(instruction));
-            this.Content[i] = InstructionLine.MakeMic(instruction, operations);
+            this.Content[this.GetIndex(instruction)] = InstructionLine.MakeMic(instruction, operations);
+        }
+
+        public void RemoveInstruction(string instruction)
+        {
+            this.Content.RemoveAt(this.GetIndex(instruction));
         }
     }
 }

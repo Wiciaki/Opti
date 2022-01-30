@@ -1,15 +1,33 @@
 ﻿namespace Opti.Optimizations.Block
 {
+    using System;
+    using System.Text.RegularExpressions;
     using System.Collections.Generic;
     using System.Linq;
 
     public class DuplicateOperationInPathOptimization : Optimization
     {
-        private static bool IsSafeToRemove(string instruction)
+        private static IEnumerable<string> Filter(string[] instructions)
         {
-            var line = Files.Txt.GetOperations().First(line => line.Instruction == instruction);
-            //System.Console.WriteLine(line.Operation);
-            return int.TryParse(line.Operation, out _);
+            static string ToOperation(string instruction)
+            {
+                return Files.Txt.GetOperations().First(line => line.Instruction == instruction).Operation;
+            }
+
+            static IEnumerable<string> GetExpressions(string operation)
+            {
+                return Regex.Matches(operation, "[\\w\\d]+").Select(match => match.Value);
+            }
+
+            foreach (var instruction in instructions)
+            {
+                var expressions = GetExpressions(ToOperation(instruction)).Where(val => !int.TryParse(val, out _)).ToArray();
+
+                if (!instructions.Except(new[] { instruction }).Select(o => GetExpressions(ToOperation(o)).First()).Any(expressions.Contains))
+                {
+                    yield return instruction;
+                }
+            }
         }
 
         protected override int RunOptimization()
@@ -22,20 +40,20 @@
             {
                 var hashset = new HashSet<string>();
 
-                // usuwać elementy będziemy od ostatniego do pierwszego bloczka w ścieżce
+                // usuwać elementy będziemy od ostatniego do pierwszego bloku operacyjnego w ścieżce
                 path.Reverse();
 
                 foreach (var line in path)
                 {
                     // pobierz operacje z bieżącej linii
-                    var instructions = Files.Txt.GetOperationsForInstruction(line.Instruction);
+                    var operations = Files.Txt.GetOperationsForInstruction(line.Instruction);
                     
-                    foreach (var instruction in instructions.Where(IsSafeToRemove))
+                    foreach (var operation in Filter(operations))
                     {
                         // już się pojawiła wcześniej, można usunąć
-                        if (!hashset.Add(instruction))
+                        if (!hashset.Add(operation))
                         {
-                            Files.UpdateInstruction(line.Instruction, instructions.Except(hashset));
+                            Files.UpdateInstruction(Files.PrepareInstruction(line), operations.Except(hashset));
                             count++;
                         }
                     }

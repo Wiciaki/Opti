@@ -30,7 +30,7 @@
                 }
 
                 // nie rób tej samej optymalizacji ponownie
-                if (!hashset.Add(string.Join('.', paths.Select(gsaPath => gsaPath.Source.ToString()).Concat(intersection))))
+                if (!hashset.Add(string.Join('.', paths.Select(p => p.Source.ToString()).Concat(intersection))))
                 {
                     continue;
                 }
@@ -39,7 +39,7 @@
                 foreach (var line in paths.SelectMany(gsaPath => gsaPath.Path))
                 {
                     var instructions = Files.Txt.GetOperationsForInstruction(line.Instruction);
-                    Files.UpdateInstruction(line.Instruction, instructions.Except(intersection));
+                    Files.UpdateInstruction(Files.PrepareInstruction(line), instructions.Except(intersection));
                 }
 
                 // przenoszenie części wspólnej do nowego bloku

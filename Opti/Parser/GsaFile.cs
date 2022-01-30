@@ -28,9 +28,9 @@
             return this.Where(line => !this.IsStartInstruction(line) && !this.IsEndInstruction(line));
         }
 
-        private int GetIndex(GsaLine other)
+        protected override int GetIndex(GsaLine line)
         {
-            return this.Content.Skip(1).ToList().FindIndex(line => GsaLine.Parse(line) == other) + 1;
+            return this.Content.Skip(1).ToList().FindIndex(l => GsaLine.Parse(l) == line) + 1;
         }
 
         public override bool VerifyStructure()
@@ -102,11 +102,10 @@
             this.SetNumber(this.GetNumber() + 1);
         }
 
-        public int RemoveInstruction(int index)
+        public void RemoveInstruction(GsaLine line)
         {
-            var count = this.Content.RemoveAll(line => line != this.Content[0] && GsaLine.Parse(line).Index == index);
-            this.SetNumber(this.GetNumber() - count);
-            return count;
+            this.Content.RemoveAt(this.GetIndex(line));
+            this.SetNumber(this.GetNumber() - 1);
         }
 
         public void SetChild(int oldIndex, int newIndex)
@@ -124,11 +123,29 @@
             this.Content[GetIndex(line)] = GsaLine.Make(line.Instruction, line.Index, T(line.First), T(line.Second));
         }
 
+        public void SetInstruction(GsaLine line, string newInstruction)
+        {
+            this.Content[GetIndex(line)] = GsaLine.Make(newInstruction, line.Index, line.First, line.Second);
+        }
+
+        public void FixIndexing()
+        {
+            for (var i = 1; i < this.Content.Count; i++)
+            {
+                var line = GsaLine.Parse(this.Content[i]);
+                var index = i - 1;
+
+                this.SetChild(line.Index, index);
+                this.Content[i] = GsaLine.Make(line.Instruction, index, line.First, line.Second);
+            }
+        }
+
         // algorytm rekurencyjny pozyskiwania ścieżek zawartych w diagramie
         // ścieżka - kilka występujących po sobie bloczków operacyjnych rozgraniczonych przez wierzchołki operacyjne i/lub bloczki start/end
         public List<GsaPath> GetPaths()
         {
             var paths = new List<GsaPath>();
+            var hashset = new HashSet<int>();
 
             var element = this.GetChildren(this.GetStartInstruction()).Single();
             var current = new GsaPath(element.Index);
@@ -137,12 +154,12 @@
 
             void EnterPath(GsaLine line)
             {
-                var destinations = this.GetChildren(line).ToList();
+                var children = this.GetChildren(line).ToList();
 
-                if (destinations.Count == 1)
+                if (children.Count == 1)
                 {
                     current.Path.Add(line);
-                    EnterPath(destinations[0]);
+                    EnterPath(children[0]);
                 }
                 else
                 {
@@ -151,10 +168,15 @@
                         paths.Add(current);
                     }
 
-                    foreach (var destination in destinations.Where(line => paths.TrueForAll(p => p.Path[0] != line)))
+                    if (!hashset.Add(line.Index))
+                    {
+                        return;
+                    }
+
+                    foreach (var child in children.GroupBy(line => line.Index).Select(group => group.First()))
                     {
                         current = new GsaPath(line.Index);
-                        EnterPath(destination);
+                        EnterPath(child);
                     }
                 }
             }
@@ -188,7 +210,7 @@
                     }
                 }
 
-                if (list[0].Path.Any() && list[1].Path.Any())
+                if (list.All(path => path.Path.Count > 0))
                 {
                     yield return list;
                 }

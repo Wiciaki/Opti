@@ -22,16 +22,14 @@
         {
             Files = files;
 
-            var list = new List<Optimization>();
-            void Add<TOptimization>() where TOptimization : Optimization, new() => list.Add(new TOptimization());
+            return new List<Optimization>
+            {
+                //new DuplicateOperationInPathOptimization(),
+                //new MergeBlocksInPathOptimization(),
+                new BringOutInstructionOptimization(),
 
-            Add<DuplicateOperationInPathOptimization>();
-            Add<MergeBlocksInPathOptimization>();
-            Add<BringOutInstructionOptimization>();
-
-            Add<RemoveRedundantConditionOptimization>();
-
-            return list;
+                new RemoveRedundantConditionOptimization(),
+            };
         }
     }
 }

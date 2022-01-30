@@ -99,10 +99,39 @@
             }
         }
 
+        protected int GetIndex(string instruction)
+        {
+            return this.GetIndex(this.Single(line => line.Instruction == instruction));
+        }
+
+        protected override int GetIndex(InstructionLine line)
+        {
+            var index = this.Content.FindIndex(l => l.StartsWith(line.Instruction) && char.IsWhiteSpace(l.Skip(line.Instruction.Length).First()));
+
+            if (index == -1)
+                throw new Exception();
+            
+            return index;
+        }
+
+        protected int GetIndex(OperationLine line)
+        {
+            var index = this.Content.FindIndex(l => l.StartsWith(line.Instruction) && char.IsWhiteSpace(l.Skip(line.Instruction.Length).First()));
+
+            if (index == -1)
+                throw new Exception();
+
+            return index;
+        }
+
+        public string[] GetOperationsForInstruction(string instruction)
+        {
+            return this.Single(line => line.Instruction == instruction).Operations;
+        }
+
         public void InsertInstruction(string instruction, string operations)
         {
-            var i = this.Content.FindIndex(line => line.StartsWith(this.Last().Instruction)) + 1;
-            this.Content.Insert(i, InstructionLine.MakeTxt(instruction, operations));
+            this.Content.Insert(this.GetIndex(this.Last()) + 1, InstructionLine.MakeTxt(instruction, operations));
         }
 
         public void UpdateInstruction(string instruction, IEnumerable<string> operations)
@@ -112,30 +141,24 @@
 
         public void UpdateInstruction(string instruction, string operations)
         {
-            var index = this.Content.FindIndex(line => line.StartsWith(instruction));
-            this.Content[index] = InstructionLine.MakeTxt(instruction, operations);
+            this.Content[this.GetIndex(instruction)] = InstructionLine.MakeTxt(instruction, operations);
         }
 
-        public int RemoveInstruction(string instruction)
+        public void RemoveInstruction(string instruction)
         {
-            return this.Content.RemoveAll(line => line.StartsWith(instruction));
-        }
-
-        public string[] GetOperationsForInstruction(string instruction)
-        {
-            return this.SingleOrDefault(line => line.Instruction == instruction)?.Operations ?? Array.Empty<string>();
+            this.Content.RemoveAt(this.GetIndex(instruction));
         }
 
         public int RemoveOperations(Func<OperationLine, bool> predicate)
         {
-            var list = this.GetOperations().Reverse().Where(predicate).ToList();
+            var instructions = this.GetOperations().Reverse().Where(predicate).ToList();
 
-            foreach (var i in list.Select(line => this.Content.FindIndex(l => l.StartsWith(line.Instruction))))
+            foreach (var i in instructions.Select(this.GetIndex))
             {
                 this.Content.RemoveAt(i);
             }
 
-            return list.Count;
+            return instructions.Count;
         }
     }
 }

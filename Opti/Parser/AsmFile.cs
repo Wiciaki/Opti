@@ -16,6 +16,8 @@
 
         public abstract bool VerifyStructure();
 
+        protected abstract int GetIndex(TLine line);
+
         protected List<string> Content { get; }
 
         public abstract IEnumerator<TLine> GetEnumerator();

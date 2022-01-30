@@ -1,9 +1,33 @@
 ﻿namespace Opti.Optimizations.Block
 {
+    using System.Collections.Generic;
+    using System.Text.RegularExpressions;
     using System.Linq;
 
     public class MergeBlocksInPathOptimization : Optimization
     {
+        private static bool Filter(string instruction, string[] instructions)
+        {
+            static string ToOperation(string instruction)
+            {
+                return Files.Txt.GetOperations().First(line => line.Instruction == instruction).Operation;
+            }
+
+            static IEnumerable<string> GetWords(string operation)
+            {
+                return Regex.Matches(operation, "\\w+").Select(match => match.Value);
+            }
+
+            var word = GetWords(ToOperation(instruction)).FirstOrDefault();
+
+            if (word != null && instructions.Select(ToOperation).Any(o => GetWords(o).FirstOrDefault() == word))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         protected override int RunOptimization()
         {
             var count = 0;
@@ -19,15 +43,19 @@
                         continue;
                     }
 
-                    System.Console.WriteLine("merge: " + path[i]);
-                    System.Console.WriteLine(string.Join(System.Environment.NewLine,Files.Gsa.GetContent()));
-
                     var oldOperations = Files.Txt.GetOperationsForInstruction(path[i - 1].Instruction);
                     var newOperations = Files.Txt.GetOperationsForInstruction(path[i].Instruction);
+                    var removed = newOperations.Where(operation => Filter(operation, oldOperations)).ToList();
+
+                    if (removed.Count == 0)
+                    {
+                        continue;
+                    }
 
                     // przeniesienie operacji z bloczka do usunięcia do bloczka wyższego
-                    Files.UpdateInstruction(path[i].Instruction, string.Empty);
-                    Files.UpdateInstruction(path[i - 1].Instruction, oldOperations.Concat(newOperations));
+                    Files.UpdateInstruction(Files.PrepareInstruction(path[i]), newOperations.Except(removed));
+                    Files.UpdateInstruction(Files.PrepareInstruction(path[i - 1]), oldOperations.Concat(removed));
+                    
                     count++;
                 }
             }
