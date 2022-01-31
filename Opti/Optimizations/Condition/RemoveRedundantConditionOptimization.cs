@@ -7,14 +7,16 @@
         protected override int RunOptimization()
         {
             var elements = (from line in Files.Gsa
-                            let destinations = Files.Gsa.GetChildren(line).ToArray()
-                            where destinations.Length == 2 && destinations[0].Index == destinations[1].Index
-                            select new { Line = line, Destination = destinations[0] }).ToArray();
+                            let children = Files.Gsa.GetChildren(line).ToArray()
+                            where children.Length == 2 && children[0] == children[1]
+                            select new { Line = line, Destination = children[0] }).ToArray();
 
             foreach (var element in elements)
             {
                 Files.Gsa.SetChild(element.Line.Index, element.Destination.Index);
                 Files.RemoveInstruction(element.Line);
+
+                Print("Removing redundant vertex {0}", element.Line);
             }
 
             return elements.Length;

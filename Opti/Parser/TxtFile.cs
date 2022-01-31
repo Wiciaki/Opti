@@ -101,27 +101,35 @@
 
         protected int GetIndex(string instruction)
         {
-            return this.GetIndex(this.Single(line => line.Instruction == instruction));
+            return this.Content.FindIndex(l =>
+            {
+                if (l.StartsWith(instruction))
+                {
+                    var c = l.Skip(instruction.Length).First();
+                    return char.IsWhiteSpace(c) || c == '=' && char.IsUpper(instruction[0]);
+                }
+
+                return false;
+            });
+        }
+
+        protected int GetOperationIndex(string instruction)
+        {
+            return this.Content.FindIndex(l =>
+            {
+                if (l.StartsWith(instruction))
+                {
+                    var c = l.Skip(instruction.Length).First();
+                    return char.IsWhiteSpace(c) || c == ':' && char.IsLower(instruction[0]);
+                }
+
+                return false;
+            });
         }
 
         protected override int GetIndex(InstructionLine line)
         {
-            var index = this.Content.FindIndex(l => l.StartsWith(line.Instruction) && char.IsWhiteSpace(l.Skip(line.Instruction.Length).First()));
-
-            if (index == -1)
-                throw new Exception();
-            
-            return index;
-        }
-
-        protected int GetIndex(OperationLine line)
-        {
-            var index = this.Content.FindIndex(l => l.StartsWith(line.Instruction) && char.IsWhiteSpace(l.Skip(line.Instruction.Length).First()));
-
-            if (index == -1)
-                throw new Exception();
-
-            return index;
+            return this.GetIndex(line.Instruction);
         }
 
         public string[] GetOperationsForInstruction(string instruction)
@@ -149,16 +157,21 @@
             this.Content.RemoveAt(this.GetIndex(instruction));
         }
 
+        public void RemoveOperation(string operation)
+        {
+            this.Content.RemoveAt(this.GetOperationIndex(operation));
+        }
+
         public int RemoveOperations(Func<OperationLine, bool> predicate)
         {
-            var instructions = this.GetOperations().Reverse().Where(predicate).ToList();
+            var indexes = this.GetOperations().Reverse().Where(predicate).Select(line => line.Instruction).Select(this.GetIndex).ToList();
 
-            foreach (var i in instructions.Select(this.GetIndex))
+            foreach (var i in indexes)
             {
                 this.Content.RemoveAt(i);
             }
 
-            return instructions.Count;
+            return indexes.Count;
         }
     }
 }

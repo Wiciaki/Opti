@@ -81,8 +81,16 @@
 
         public void RemoveInstruction(string instruction)
         {
-            this.Txt.RemoveInstruction(instruction);
-            this.Mic.RemoveInstruction(instruction);
+            if (char.IsUpper(instruction[0]))
+            {
+                this.Txt.RemoveInstruction(instruction);
+                this.Mic.RemoveInstruction(instruction);
+            }
+
+            if (char.IsLower(instruction[0]))
+            {
+                this.Txt.RemoveOperation(instruction);
+            }
         }
 
         private string GetNewInstructionName()
@@ -95,13 +103,15 @@
             return generator.First();
         }
 
-        public void AddInstruction(int source, string[] operations)
+        public string AddInstruction(int source, string[] operations)
         {
             var newIndex = this.Gsa.Max(line => line.Index) + 1;
             var newInstruction = this.GetNewInstructionName();
 
             this.Gsa.SetChild(source, newIndex);
             this.InsertLine(new GsaLine(newInstruction, newIndex, source, 0), operations);
+
+            return newInstruction;
         }
 
         public string PrepareInstruction(GsaLine line)
@@ -122,9 +132,9 @@
         public int RemoveEmptyEntries()
         {
             var elements = (from line in this.Gsa.GetMiddleBlocks()
-                            let destinations = this.Gsa.GetChildren(line).ToArray()
-                            where destinations.Length == 1 && !this.Txt.GetOperationsForInstruction(line.Instruction).Any()
-                            select new { Line = line, Destination = destinations[0] }).ToArray();
+                            let children = this.Gsa.GetChildren(line).ToArray()
+                            where children.Length == 1 && !this.Txt.GetOperationsForInstruction(line.Instruction).Any()
+                            select new { Line = line, Child = children[0] }).ToArray();
 
             foreach (var e in elements)
             {
@@ -135,9 +145,10 @@
 
                 do
                 {
-                    var destination = element.Destination;
-                    index = destination.Index;
-                    element = Array.Find(elements, e => e.Line == destination);
+                    var child = element.Child;
+
+                    index = child.Index;
+                    element = Array.Find(elements, e => e.Line == child);
                 }
                 while (element != null);
 

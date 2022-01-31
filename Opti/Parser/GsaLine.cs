@@ -26,13 +26,12 @@
 
         public static string Make(string instruction, int index, int first, int second)
         {
-            var s = $"  {index,-4}{instruction,-7}{first,-4}{second,-4}";
-            return s;
+            return $"  {index,-4}{instruction,-7}{first,-4}{second,-4}";
         }
 
         public override string ToString()
         {
-            return $"GsaLine: [{Make(this.Instruction, this.Index, this.First, this.Second)}]";
+            return $"[{Make(this.Instruction, this.Index, this.First, this.Second)}]";
         }
 
         public override bool Equals(object obj)

@@ -16,15 +16,18 @@
 
         private readonly string resultName;
 
-        public AsmOptimizer(string gsaPath, string txtPath, string micPath, string resultName) : this(Read(gsaPath), Read(txtPath), Read(micPath), resultName)
+        private readonly Action<int, int> onPassCallback;
+
+        public AsmOptimizer(string gsaPath, string txtPath, string micPath, string resultName, Action<string, object[]> onOptimizeItemCallback = null, Action<int, int> onPassCallback = null) : this(Read(gsaPath), Read(txtPath), Read(micPath), resultName, onOptimizeItemCallback, onPassCallback)
         { }
 
-        public AsmOptimizer(string[] gsa, string[] txt, string[] mic, string resultName)
+        public AsmOptimizer(string[] gsa, string[] txt, string[] mic, string resultName, Action<string, object[]> onOptimizeItemCallback = null, Action<int, int> onPassCallback = null)
         {
             this.resultName = resultName;
+            this.onPassCallback = onPassCallback;
 
             this.Files = new AsmFiles(gsa, txt, mic);
-            this.Optimizations = Optimization.LoadDefault(this.Files);
+            this.Optimizations = Optimization.LoadDefault(this.Files, onOptimizeItemCallback);
         }
 
         private static string[] Read(string path)
@@ -64,7 +67,7 @@
             return Names().First(hashset.Add);
         }
 
-        public int Optimize(Action<int, int> onPassCallback = null, int maxPassCount = int.MaxValue)
+        public int Optimize(int maxPassCount = int.MaxValue)
         {
             var count = 0;
 

@@ -21,7 +21,7 @@
 
         public override string ToString()
         {
-            return $"OperationLine: [{this.Instruction}\t: {this.Operation}]";
+            return $"[{this.Instruction}\t: {this.Operation}]";
         }
     }
 }

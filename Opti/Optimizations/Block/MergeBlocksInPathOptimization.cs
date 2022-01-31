@@ -1,33 +1,9 @@
 ﻿namespace Opti.Optimizations.Block
 {
-    using System.Collections.Generic;
-    using System.Text.RegularExpressions;
     using System.Linq;
 
     public class MergeBlocksInPathOptimization : Optimization
     {
-        private static bool Filter(string instruction, string[] instructions)
-        {
-            static string ToOperation(string instruction)
-            {
-                return Files.Txt.GetOperations().First(line => line.Instruction == instruction).Operation;
-            }
-
-            static IEnumerable<string> GetWords(string operation)
-            {
-                return Regex.Matches(operation, "\\w+").Select(match => match.Value);
-            }
-
-            var word = GetWords(ToOperation(instruction)).FirstOrDefault();
-
-            if (word != null && instructions.Select(ToOperation).Any(o => GetWords(o).FirstOrDefault() == word))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         protected override int RunOptimization()
         {
             var count = 0;
@@ -55,7 +31,8 @@
                     // przeniesienie operacji z bloczka do usunięcia do bloczka wyższego
                     Files.UpdateInstruction(Files.PrepareInstruction(path[i]), newOperations.Except(removed));
                     Files.UpdateInstruction(Files.PrepareInstruction(path[i - 1]), oldOperations.Concat(removed));
-                    
+
+                    Print("Merged operations: {0} from {1} into {2}", PrintOperations(removed), path[i], path[i - 1]);
                     count++;
                 }
             }

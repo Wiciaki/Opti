@@ -1,6 +1,5 @@
 ﻿namespace Opti.Parser
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -51,17 +50,12 @@
 
         protected int GetIndex(string instruction)
         {
-            return this.GetIndex(this.Single(line => line.Instruction == instruction));
+            return this.Content.FindIndex(l => l.StartsWith(instruction) && char.IsWhiteSpace(l.Skip(instruction.Length).First()));
         }
 
         protected override int GetIndex(InstructionLine line)
         {
-            var index = this.Content.FindIndex(l => l.StartsWith(line.Instruction) && char.IsWhiteSpace(l.Skip(line.Instruction.Length).First()));
-
-            if (index == -1)
-                throw new Exception();
-
-            return index;
+            return this.GetIndex(line.Instruction);
         }
 
         public void InsertInstruction(string instruction, string operations)

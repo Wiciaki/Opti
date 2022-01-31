@@ -49,7 +49,7 @@
 
         public override string ToString()
         {
-            return $"InstructionLine: [{MakeTxt(this.Instruction, string.Join(' ', this.Operations))}]";
+            return $"[{MakeTxt(this.Instruction, string.Join(' ', this.Operations))}]";
         }
     }
 }

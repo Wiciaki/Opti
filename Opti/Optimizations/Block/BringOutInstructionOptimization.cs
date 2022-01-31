@@ -7,8 +7,6 @@
 
     public class BringOutInstructionOptimization : Optimization
     {
-        private readonly HashSet<string> hashset = new HashSet<string>();
-
         private static IEnumerable<string> GetAllOperations(GsaPath p)
         {
             return p.Path.Select(line => line.Instruction).SelectMany(Files.Txt.GetOperationsForInstruction);
@@ -29,12 +27,6 @@
                     continue;
                 }
 
-                // nie rób tej samej optymalizacji ponownie
-                if (!hashset.Add(string.Join('.', paths.Select(p => p.Source.ToString()).Concat(intersection))))
-                {
-                    continue;
-                }
-
                 // usuwanie części wspólnej z obu ścieżek
                 foreach (var line in paths.SelectMany(gsaPath => gsaPath.Path))
                 {
@@ -43,8 +35,13 @@
                 }
 
                 // przenoszenie części wspólnej do nowego bloku
-                Files.AddInstruction(paths[0].Source, intersection);
-                count++;
+                var instruction = Files.AddInstruction(paths[0].Source, intersection);
+
+                var vertex = Files.Gsa.First(l => l.Index == paths[0].Source);
+                var sourceLine = Files.Gsa.First(l => l.Instruction == instruction);
+
+                Print("Bringing out duplicate operation(s) {0} found in children of the vertex {1} to {2}", PrintOperations(intersection), vertex, sourceLine);
+                count += intersection.Length;
             }
 
             return count;

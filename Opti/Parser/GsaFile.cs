@@ -91,11 +91,6 @@
             }
         }
 
-        public GsaLine GetChild(GsaPath gsaPath)
-        {
-            return this.GetChildren(gsaPath.Path.Last()).Single();
-        }
-
         public void InsertInstruction(string instruction, int index, int first, int second)
         {
             this.Content.Insert(GetIndex(this.Last()) + 1, GsaLine.Make(instruction, index, first, second));

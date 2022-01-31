@@ -96,7 +96,7 @@
                 return;
             }
 
-            var optimizer = new AsmOptimizer(gsa, txt, mic, resultName);
+            var optimizer = new AsmOptimizer(gsa, txt, mic, resultName, OnOptimizeItemCallback, OnPassCallback);
 
             if (!optimizer.Files.VerifyStructure())
             {
@@ -116,7 +116,7 @@
                 return;
             }
 
-            Info(Resources.info_optimized, optimizer.Optimize(OnPassCallback));
+            Info(Resources.info_optimized, optimizer.Optimize());
 
             var name = optimizer.GetResultName(outdir);
 
@@ -135,10 +135,9 @@
             Info(Resources.info_saved, outdir, name);
         }
 
-        private static void OnPassCallback(int optimizedInPass, int optimizedTotal)
-        {
-            Info(Resources.info_pass, optimizedInPass, optimizedTotal);
-        }
+        private static void OnPassCallback(int optimizedInPass, int optimizedTotal) => Info(Resources.info_pass, optimizedInPass, optimizedTotal);
+
+        private static void OnOptimizeItemCallback(string message, object[] arguments) => Print(ConsoleColor.DarkYellow, "V: " + message, arguments);
 
         public static void Error(string message, params object[] arguments) => Print(ConsoleColor.Red, "E: " + message, arguments);
 
