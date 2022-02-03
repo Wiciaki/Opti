@@ -2,7 +2,7 @@
 {
     using System.Linq;
 
-    public class MergeBlocksInPathOptimization : Optimization
+    public class MergeOptimization : Optimization
     {
         protected override int RunOptimization()
         {
@@ -21,19 +21,20 @@
 
                     var oldOperations = Files.Txt.GetOperationsForInstruction(path[i - 1].Instruction);
                     var newOperations = Files.Txt.GetOperationsForInstruction(path[i].Instruction);
-                    var removed = newOperations.Where(operation => Filter(operation, oldOperations)).ToList();
+                    
+                    var toRemove = newOperations.Where(operation => IsCompatible(operation, oldOperations)).ToList();
 
-                    if (removed.Count == 0)
+                    if (toRemove.Count == 0)
                     {
                         continue;
                     }
 
                     // przeniesienie operacji z bloczka do usunięcia do bloczka wyższego
-                    Files.UpdateInstruction(Files.PrepareInstruction(path[i]), newOperations.Except(removed));
-                    Files.UpdateInstruction(Files.PrepareInstruction(path[i - 1]), oldOperations.Concat(removed));
+                    Files.UpdateInstruction(Files.PrepareInstruction(path[i]), newOperations.Except(toRemove));
+                    Files.UpdateInstruction(Files.PrepareInstruction(path[i - 1]), oldOperations.Concat(toRemove));
 
-                    Print("Merged operations: {0} from {1} into {2}", PrintOperations(removed), path[i], path[i - 1]);
-                    count++;
+                    Print("Merged operations: {0} from {1} into {2}", PrintOperations(toRemove), path[i], path[i - 1]);
+                    count += toRemove.Count;
                 }
             }
 

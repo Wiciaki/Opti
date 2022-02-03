@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class DuplicateOperationInPathOptimization : Optimization
+    public class DuplicateOptimization : Optimization
     {
         protected override int RunOptimization()
         {
@@ -23,7 +23,7 @@
                     // pobierz operacje z bieżącej linii
                     var operations = Files.Txt.GetOperationsForInstruction(line.Instruction);
 
-                    foreach (var operation in Filter(operations))
+                    foreach (var operation in GetCompatible(operations))
                     {
                         // już się pojawiła wcześniej, można usunąć
                         if (!hashset.Add(operation))
@@ -38,11 +38,6 @@
                             Print("Duplicate operation: {0} in {1}", PrintOperation(operation), line);
                             count++;
                         }
-                    }
-
-                    if (Files.Gsa.SelectMany(Files.Gsa.GetChildren).Where(l => l == line).Skip(1).Any())
-                    {
-                        hashset.Clear();
                     }
                 }
             }

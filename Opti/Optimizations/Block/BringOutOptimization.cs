@@ -5,7 +5,7 @@
 
     using Opti.Parser;
 
-    public class BringOutInstructionOptimization : Optimization
+    public class BringOutOptimization : Optimization
     {
         private static IEnumerable<string> GetAllOperations(GsaPath p)
         {

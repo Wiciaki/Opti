@@ -2,7 +2,7 @@
 {
     using System.Linq;
 
-    public class RemoveRedundantConditionOptimization : Optimization
+    public class RemoveVertexOptimization : Optimization
     {
         protected override int RunOptimization()
         {

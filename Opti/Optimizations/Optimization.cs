@@ -29,11 +29,11 @@
 
             return new List<Optimization>
             {
-                new DuplicateOperationInPathOptimization(),
-                new MergeBlocksInPathOptimization(),
-                new BringOutInstructionOptimization(),
+                new DuplicateOptimization(),
+                new MergeOptimization(),
+                new BringOutOptimization(),
 
-                new RemoveRedundantConditionOptimization(),
+                new RemoveVertexOptimization(),
             };
         }
 
@@ -54,21 +54,21 @@
             return "[" + string.Join("; ", operations.Select(PrintOperation)) + "]";
         }
 
-        protected static IEnumerable<string> GetExpressions(string operation)
+        protected static List<string> GetExpressions(string operation)
         {
-            return Regex.Matches(operation, @"[\w\d]+").Select(match => match.Value);
+            return Regex.Matches(operation, @"[\w\d]+").Select(match => match.Value).ToList();
         }
 
-        protected static bool Filter(string instruction, IEnumerable<string> instructions)
+        protected static bool IsCompatible(string instruction, IEnumerable<string> instructions)
         {
-            var expressions = GetExpressions(ToSymbol(instruction)).Where(val => !int.TryParse(val, out _)).ToArray();
+            var expressions = GetExpressions(ToSymbol(instruction)).FindAll(val => !int.TryParse(val, out _));
 
-            return !instructions.Select(ToSymbol).Select(s => GetExpressions(s).First()).Any(expressions.Contains);
+            return expressions.Count == 1 || !instructions.Select(ToSymbol).Select(GetExpressions).Any(e => e.Count > 1 && expressions.Contains(e[0]));
         }
 
-        protected static IEnumerable<string> Filter(IEnumerable<string> instructions)
+        protected static IEnumerable<string> GetCompatible(IEnumerable<string> instructions)
         {
-            return instructions.Where(i => Filter(i, instructions.Except(new[] { i }).Distinct()));
+            return instructions.Where(i => IsCompatible(i, instructions.Except(new[] { i }).Distinct()));
         }
 
         #endregion
