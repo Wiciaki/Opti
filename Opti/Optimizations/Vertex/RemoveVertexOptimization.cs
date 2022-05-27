@@ -1,4 +1,4 @@
-﻿namespace Opti.Optimizations.Condition
+﻿namespace Opti.Optimizations.Vertex
 {
     using System.Linq;
 

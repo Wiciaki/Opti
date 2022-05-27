@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>opti</AssemblyName>
     <ApplicationIcon>agh.ico</ApplicationIcon>
   </PropertyGroup>
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21617.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
   </ItemGroup>
 
   <ItemGroup>

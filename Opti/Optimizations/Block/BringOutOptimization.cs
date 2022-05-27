@@ -30,8 +30,8 @@
                 // usuwanie części wspólnej z obu ścieżek
                 foreach (var line in paths.SelectMany(gsaPath => gsaPath.Path))
                 {
-                    var instructions = Files.Txt.GetOperationsForInstruction(line.Instruction);
-                    Files.UpdateInstruction(Files.PrepareInstruction(line), instructions.Except(intersection));
+                    var operations = Files.Txt.GetOperationsForInstruction(line.Instruction);
+                    Files.UpdateInstruction(Files.PrepareInstruction(line), operations.Except(intersection));
                 }
 
                 // przenoszenie części wspólnej do nowego bloku

@@ -93,7 +93,7 @@
 
         public void InsertInstruction(string instruction, int index, int first, int second)
         {
-            this.Content.Insert(GetIndex(this.Last()) + 1, GsaLine.Make(instruction, index, first, second));
+            this.Content.Insert(this.GetIndex(this.Last()) + 1, GsaLine.Make(instruction, index, first, second));
             this.SetNumber(this.GetNumber() + 1);
         }
 
@@ -115,12 +115,12 @@
         {
             int T(int index) => index == oldIndex ? newIndex : index;
 
-            this.Content[GetIndex(line)] = GsaLine.Make(line.Instruction, line.Index, T(line.First), T(line.Second));
+            this.Content[this.GetIndex(line)] = GsaLine.Make(line.Instruction, line.Index, T(line.First), T(line.Second));
         }
 
         public void SetInstruction(GsaLine line, string newInstruction)
         {
-            this.Content[GetIndex(line)] = GsaLine.Make(newInstruction, line.Index, line.First, line.Second);
+            this.Content[this.GetIndex(line)] = GsaLine.Make(newInstruction, line.Index, line.First, line.Second);
         }
 
         public void FixIndexing()
@@ -136,7 +136,7 @@
         }
 
         // algorytm rekurencyjny pozyskiwania ścieżek zawartych w diagramie
-        // ścieżka - kilka występujących po sobie bloczków operacyjnych rozgraniczonych przez wierzchołki operacyjne i/lub bloczki start/end
+        // ścieżka - kilka występujących po sobie bloków operacyjnych rozgraniczonych przez wierzchołki operacyjne i/lub bloki start/end
         public List<GsaPath> GetPaths()
         {
             var paths = new List<GsaPath>();
@@ -168,7 +168,7 @@
                         return;
                     }
 
-                    foreach (var child in children.GroupBy(line => line.Index).Select(group => group.First()))
+                    foreach (var child in children.GroupBy(line => line.Index).Select(g => g.First()))
                     {
                         current = new GsaPath(line.Index);
                         EnterPath(child);

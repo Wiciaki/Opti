@@ -5,10 +5,10 @@
     using System.Text.RegularExpressions;
     using System.Linq;
 
-    using Opti.Optimizations.Block;
-    using Opti.Optimizations.Condition;
-
     using Opti.Parser;
+
+    using Opti.Optimizations.Block;
+    using Opti.Optimizations.Vertex;
 
     public abstract class Optimization
     {
@@ -34,14 +34,15 @@
                 new BringOutOptimization(),
 
                 new RemoveVertexOptimization(),
+                new VertexOptimization()
             };
         }
 
         #region Helper Methods
 
-        protected static string ToSymbol(string instruction)
+        protected static string ToSymbol(string operation)
         {
-            return Files.Txt.GetOperations().First(line => line.Instruction == instruction).Operation;
+            return Files.Txt.GetOperations().First(line => line.Instruction == operation).Operation;
         }
 
         protected static string PrintOperation(string operation)
@@ -59,16 +60,16 @@
             return Regex.Matches(operation, @"[\w\d]+").Select(match => match.Value).ToList();
         }
 
-        protected static bool IsCompatible(string instruction, IEnumerable<string> instructions)
+        protected static bool IsCompatible(string operation, IEnumerable<string> operations)
         {
-            var expressions = GetExpressions(ToSymbol(instruction)).FindAll(val => !int.TryParse(val, out _));
+            var expressions = GetExpressions(ToSymbol(operation)).FindAll(val => !int.TryParse(val, out _));
 
-            return expressions.Count == 1 || !instructions.Select(ToSymbol).Select(GetExpressions).Any(e => e.Count > 1 && expressions.Contains(e[0]));
+            return expressions.Count == 1 || !operations.Select(ToSymbol).Select(GetExpressions).Any(e => e.Count > 1 && expressions.Contains(e[0]));
         }
 
-        protected static IEnumerable<string> GetCompatible(IEnumerable<string> instructions)
+        protected static IEnumerable<string> GetCompatible(IEnumerable<string> operations)
         {
-            return instructions.Where(i => IsCompatible(i, instructions.Except(new[] { i }).Distinct()));
+            return operations.Where(i => IsCompatible(i, operations.Except(new[] { i }).Distinct()));
         }
 
         #endregion
